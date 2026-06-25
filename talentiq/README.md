@@ -8,9 +8,9 @@
 | Phase | Focus | Status |
 |-------|-------|--------|
 | **Phase 1** | Setup — venv, configs, folder structure, dataset | ✅ Done |
-| **Phase 2** | EDA + Preprocessing + Feature Engineering | 🔜 Next |
-| **Phase 3** | Model Training + Hyperparameter Tuning | ⏳ Upcoming |
-| **Phase 4** | Evaluation + SHAP + Final Report | ⏳ Upcoming |
+| **Phase 2** | EDA + Preprocessing + Feature Engineering |✅ Done |
+| **Phase 3** | Model Training + Hyperparameter Tuning | ✅ Done |
+| **Phase 4** | Evaluation + SHAP + Final Report | ✅ Done |
 
 ---
 
