@@ -1,35 +1,58 @@
 """
-config_loader.py
-Loads all YAML config files and exposes them as Python dicts.
+src/config_loader.py
+TalentIQ — Config + Data Loader
+mode: "sample" → loads sample_size rows  (testing / git push)
+mode: "full"   → loads all rows          (actual training)
+Set mode in config/config.yaml
 """
+
 import yaml
-from pathlib import Path
+import pandas as pd
+import os
 
-CONFIG_DIR = Path(__file__).resolve().parent.parent / "config"
-
-
-def _load(filename: str) -> dict:
-    with open(CONFIG_DIR / filename, "r") as f:
+def load_config():
+    with open("config/config.yaml", "r") as f:
         return yaml.safe_load(f)
 
+def load_features():
+    with open("config/features.yaml", "r") as f:
+        return yaml.safe_load(f)
 
-def load_config() -> dict:
-    return _load("config.yaml")
+def load_hyperparams():
+    with open("config/hyperparameters.yaml", "r") as f:
+        return yaml.safe_load(f)
 
+def load_data():
+    
+    cfg  = load_config()
+    path = cfg["paths"]["raw_data"]
+    mode = cfg.get("mode", "full")
 
-def load_features() -> dict:
-    return _load("features.yaml")
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"[ERROR] Dataset not found at: {path}\n"
+            f"        Place resume_dataset.csv inside data/raw/"
+        )
 
+    if mode == "sample":
+        n  = cfg.get("sample_size", 5000)
+        df = pd.read_csv(path, nrows=n)
+        print(f"[INFO] Mode=SAMPLE → loaded {len(df)} rows")
+    else:
+        df = pd.read_csv(path)
+        print(f"[INFO] Mode=FULL → loaded {len(df)} rows")
 
-def load_hyperparams() -> dict:
-    return _load("hyperparameters.yaml")
+    return df
 
-
-# ─── Quick sanity check ─────────────────────────────────────
 if __name__ == "__main__":
-    cfg = load_config()
+    cfg  = load_config()
     feat = load_features()
-    hp = load_hyperparams()
-    print(" config.yaml     loaded —", list(cfg.keys()))
-    print(" features.yaml   loaded —", list(feat.keys()))
-    print(" hyperparams.yaml loaded —", list(hp.keys()))
+    hp   = load_hyperparams()
+
+    print(f"config.yaml      : {list(cfg.keys())}")
+    print(f"features.yaml    : {list(feat.keys())}")
+    print(f"hyperparams.yaml : {list(hp.keys())}")
+    print(f"Current mode     : {cfg.get('mode', 'full').upper()}")
+
+    df = load_data()
+    print(f"Dataset shape    : {df.shape}")
