@@ -74,12 +74,12 @@ talentiq/
 
 ## Phase Breakdown
 
-### ✅ Phase 1 — Setup
+###  Phase 1 — Setup
 Project skeleton, virtual environment, config structure, folder layout, dataset placed in `data/raw/`.
 
 ---
 
-### ✅ Phase 2 — EDA · Preprocessing · Feature Engineering
+### Phase 2 — EDA · Preprocessing · Feature Engineering
 
 #### Problem 1 — We don't understand the data yet
 Before building any model, we need to know what we're working with. Are the classes balanced? Are there missing values? Which features actually predict hiring?
@@ -117,7 +117,7 @@ ML models can't handle missing values (they crash), extreme outliers (they disto
 | Split 80/20 | Stratified train/test split | Keeps class ratio equal in both sets |
 | Scale (StandardScaler) | Fit on train only, transform both | **Prevents data leakage** — test data must stay unseen |
 
-> ⚠️ **Critical rule:** The scaler is fitted on the training set only. Fitting on the full dataset before splitting leaks test information into training — your model would appear better than it actually is.
+>  **Critical rule:** The scaler is fitted on the training set only. Fitting on the full dataset before splitting leaks test information into training — your model would appear better than it actually is.
 
 ---
 
@@ -140,7 +140,7 @@ Individual columns like CGPA or SkillsScore are useful, but a model learns bette
 
 ---
 
-### 🔄 Phase 3 — Model Training · Hyperparameter Tuning *(Upcoming)*
+###  Phase 3 — Model Training · Hyperparameter Tuning 
 
 Three models trained with cross-validated hyperparameter search:
 
@@ -154,7 +154,7 @@ SMOTE applied on training set only (after split) to handle class imbalance. All 
 
 ---
 
-### 🔄 Phase 4 — Evaluation · SHAP · Report *(Upcoming)*
+###  Phase 4 — Evaluation · SHAP · Report 
 
 | Deliverable | File |
 |---|---|
@@ -236,7 +236,7 @@ Run it after placing the dataset. All plots auto-save to `reports/figures/`.
 
 <div align="center">
 
-**TalentIQ** · Binary Classification Pipeline · Target: 95+/100
+**TalentIQ** · Binary Classification Pipeline · 
 
 *Built for Task 2 — Classification Pipeline*
 
