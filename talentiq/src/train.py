@@ -35,24 +35,16 @@ logger = logging.getLogger(__name__)
 # ── 1. BUILD PREPROCESSOR PIPELINE ──────────────────────────────────────────
 
 def build_preprocessor() -> ColumnTransformer:
-    """
-    ColumnTransformer that handles all encoding and scaling.
-    Fitted on train only — applied to both train and test.
-    """
     feat = load_features()
 
-    # ordinal columns have a natural order defined in features.yaml
-    ordinal_cols = list(feat["ordinal_maps"].keys())          # ['education_level', 'university_tier']
+    ordinal_cols = list(feat["ordinal_maps"].keys())
     ordinal_categories = [
-        list(feat["ordinal_maps"][col].keys())                # e.g. ['High School','Bachelor','Master','PhD']
+        list(feat["ordinal_maps"][col].keys())
         for col in ordinal_cols
     ]
 
-    # one-hot columns have no natural order
-    onehot_cols = feat["onehot_columns"]                      # ['company_type']
-
-    # numerical columns get scaled
-    numerical_cols = feat["numerical_features"]               # 12 raw + 7 engineered added later
+    onehot_cols = feat["onehot_columns"]
+    numerical_cols = feat["numerical_features"]
 
     preprocessor = ColumnTransformer(
         transformers=[
@@ -80,7 +72,7 @@ def build_preprocessor() -> ColumnTransformer:
                 numerical_cols,
             ),
         ],
-        remainder="passthrough",   # engineered features pass through untouched
+        remainder="passthrough",
     )
 
     return preprocessor
@@ -89,10 +81,6 @@ def build_preprocessor() -> ColumnTransformer:
 # ── 2. LOAD AND PREPARE DATA ─────────────────────────────────────────────────
 
 def load_and_prepare() -> tuple:
-    """
-    Run preprocessing + feature engineering, then split into
-    X_train, X_test, y_train, y_test. Saves splits to data/splits/.
-    """
     cfg  = load_config()
     feat = load_features()
 
@@ -111,7 +99,6 @@ def load_and_prepare() -> tuple:
         stratify=y if cfg["split"]["stratify"] else None,
     )
 
-    # save raw splits for reference / notebook inspection
     splits_dir = PROJECT_ROOT / "data" / "splits"
     splits_dir.mkdir(parents=True, exist_ok=True)
 
@@ -120,9 +107,7 @@ def load_and_prepare() -> tuple:
     y_train.to_csv(splits_dir / "y_train.csv", index=False)
     y_test.to_csv(splits_dir  / "y_test.csv",  index=False)
 
-    logger.info(
-        f"Split — Train: {X_train.shape[0]} rows | Test: {X_test.shape[0]} rows"
-    )
+    logger.info(f"Split — Train: {X_train.shape[0]} rows | Test: {X_test.shape[0]} rows")
 
     return X_train, X_test, y_train, y_test
 
@@ -135,34 +120,24 @@ def transform_and_resample(
     X_test: pd.DataFrame,
     y_train: pd.Series,
 ) -> tuple:
-    """
-    Fit preprocessor on train only, transform both.
-    Apply SMOTE on transformed train only (prevents data leakage).
-    """
     cfg = load_config()
 
-    # fit on train, transform both
     X_train_enc = preprocessor.fit_transform(X_train)
     X_test_enc  = preprocessor.transform(X_test)
 
-    # save fitted preprocessor
     artifacts_dir = PROJECT_ROOT / "artifacts"
     artifacts_dir.mkdir(parents=True, exist_ok=True)
     joblib.dump(preprocessor, artifacts_dir / "preprocessor.pkl")
     logger.info("Preprocessor saved to artifacts/preprocessor.pkl")
 
-    # save feature column list
     feature_cols = list(X_train.columns)
     joblib.dump(feature_cols, artifacts_dir / "feature_columns.pkl")
     logger.info("Feature columns saved to artifacts/feature_columns.pkl")
 
-    # SMOTE on train only — after encoding (needs numeric input)
     if cfg["smote"]["enabled"]:
         sm = SMOTE(random_state=cfg["smote"]["random_state"])
         X_train_enc, y_train = sm.fit_resample(X_train_enc, y_train)
-        logger.info(
-            f"SMOTE applied — resampled train size: {X_train_enc.shape[0]}"
-        )
+        logger.info(f"SMOTE applied — resampled train size: {X_train_enc.shape[0]}")
 
     return X_train_enc, X_test_enc, y_train
 
@@ -175,10 +150,6 @@ def search_model(
     X_train: np.ndarray,
     y_train: np.ndarray,
 ) -> object:
-    """
-    Run GridSearchCV or RandomizedSearchCV based on hyperparameters.yaml.
-    Returns the best fitted estimator.
-    """
     hp = load_hyperparameters()[name]
 
     common = dict(
@@ -218,9 +189,7 @@ def train_all(
     y_train: np.ndarray,
     y_test: np.ndarray,
 ) -> None:
-    """Train LR, RF, XGBoost — tune, evaluate, save each."""
-
-    cfg          = load_config()
+    cfg = load_config()
     artifacts_dir = PROJECT_ROOT / "artifacts" / "models"
     artifacts_dir.mkdir(parents=True, exist_ok=True)
 
@@ -233,22 +202,26 @@ def train_all(
                                ),
     }
 
-    # human-readable names for plots / reports
     display_names = {
         "logistic_regression": "Logistic Regression",
         "random_forest":       "Random Forest",
         "xgboost":             "XGBoost",
     }
 
-    # artifact save paths from config.yaml
     save_paths = {
         "logistic_regression": PROJECT_ROOT / cfg["paths"]["models"]["logistic"],
         "random_forest":       PROJECT_ROOT / cfg["paths"]["models"]["random_forest"],
         "xgboost":             PROJECT_ROOT / cfg["paths"]["models"]["xgboost"],
     }
 
-    all_metrics  = []
-    feature_names = joblib.load(PROJECT_ROOT / "artifacts" / "feature_columns.pkl")
+    all_metrics = []
+
+    # get feature names from the fitted preprocessor saved in transform_and_resample
+    _preprocessor = joblib.load(PROJECT_ROOT / "artifacts" / "preprocessor.pkl")
+    try:
+        feature_names = list(_preprocessor.get_feature_names_out())
+    except Exception:
+        feature_names = [f"feature_{i}" for i in range(X_train.shape[1])]
 
     for key, estimator in models.items():
         display = display_names[key]
@@ -256,25 +229,20 @@ def train_all(
 
         best_model = search_model(key, estimator, X_train, y_train)
 
-        # predict
         y_pred = best_model.predict(X_test)
         y_prob = best_model.predict_proba(X_test)[:, 1]
 
-        # evaluate
         metrics, _ = evaluate_model(display, y_test, y_pred, y_prob)
         all_metrics.append(metrics)
 
-        # plots
         plot_confusion_matrix(y_test, y_pred, display)
         plot_roc_curve(y_test, y_prob, display)
         plot_feature_importance(best_model, feature_names, display)
 
-        # save model
         save_paths[key].parent.mkdir(parents=True, exist_ok=True)
         joblib.dump(best_model, save_paths[key])
         logger.info(f"{display} saved to {save_paths[key]}")
 
-    # comparison table + summary.md
     metrics_df = save_metrics(all_metrics)
     plot_model_comparison(metrics_df)
     save_summary(metrics_df)
@@ -285,16 +253,11 @@ def train_all(
 # ── 6. ENTRY POINT ───────────────────────────────────────────────────────────
 
 def run_training() -> None:
-    """Full training pipeline — called from main.py."""
-
     X_train, X_test, y_train, y_test = load_and_prepare()
-
     preprocessor = build_preprocessor()
-
     X_train_enc, X_test_enc, y_train_res = transform_and_resample(
         preprocessor, X_train, X_test, y_train
     )
-
     train_all(X_train_enc, X_test_enc, y_train_res, y_test)
 
 
