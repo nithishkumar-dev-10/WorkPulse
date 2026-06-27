@@ -1,50 +1,46 @@
-
-
-target: "Hired"
+target: hired
 
 numerical_features:
-  - CGPA
-  - YearsExperience
-  - SkillsScore
-  - SoftSkillsScore
-  - Projects
-  - Hackathons
-  - ResearchPapers
-  - Internships
-  - Certifications
-  - Languages_count
+  - age
+  - cgpa
+  - experience_years
+  - skills_score
+  - soft_skills_score
+  - internships
+  - projects
+  - certifications
+  - hackathons
+  - research_papers
+  - programming_languages
+  - resume_length_words
 
 categorical_features:
-  - EducationLevel
-  - UniversityTier
-  - CompanyType
-  - ProgrammingLanguages
+  - education_level
+  - university_tier
+  - company_type
 
 outlier_columns:
-  - CGPA
-  - YearsExperience
-  - SkillsScore
-  - SoftSkillsScore
+  - age
+  - cgpa
+  - experience_years
+  - skills_score
+  - soft_skills_score
 
-# Ordinal encoding maps
 ordinal_maps:
-  EducationLevel:
+  education_level:
     "High School": 1
-    "Bachelor":    2
-    "Master":      3
-    "PhD":         4
+    "Bachelor": 2
+    "Master": 3
+    "PhD": 4
 
-  UniversityTier:
+  university_tier:
     "Tier 3": 1
     "Tier 2": 2
     "Tier 1": 3
 
-# One-hot encode these
 onehot_columns:
-  - CompanyType
-  - ProgrammingLanguages
+  - company_type
 
-# Final engineered feature list (after feature_engineering.py)
 engineered_features:
   - EmployabilityScore
   - PortfolioStrength

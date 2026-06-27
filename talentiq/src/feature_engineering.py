@@ -1,124 +1,124 @@
-
-
-import os
+import logging
 import pandas as pd
-import numpy as np
-import joblib
-from src.config_loader import load_config, load_features
 
-#  5 ORIGINAL FEATURES
-def add_employability_score(df):
-    """0.3*CGPA + 0.4*SkillsScore + 0.3*SoftSkillsScore"""
-    df["EmployabilityScore"] = (
-        0.3 * df["CGPA"] +
-        0.4 * df["SkillsScore"] +
-        0.3 * df["SoftSkillsScore"]
-    )
+#creating a logger object for this file
+logger = logging.getLogger(__name__)
+# usually log is used like a print statement , but it doesn't prints , it store's, whenever we get error/crash we can check/rectify acc to the log
+
+#creating a new feature "EmployabiltyScore" ---> Formula = 0.3*cgpa + 0.4*skill_score + 0.3*soft_skill_score
+def create_employability_score(df: pd.DataFrame) -> pd.DataFrame:
+    df["EmployabilityScore"] = (0.3 * df["cgpa"]+ 0.4 * df["skills_score"]+ 0.3 * df["soft_skills_score"])
+
+    #Stores and Prints the process in terminal with the given message 
+    logger.info("EmployabilityScore created.")
+
     return df
 
-def add_portfolio_strength(df):
-    """Projects*0.5 + Hackathons*0.3 + ResearchPapers*0.2"""
-    df["PortfolioStrength"] = (
-        df["Projects"]       * 0.5 +
-        df["Hackathons"]     * 0.3 +
-        df["ResearchPapers"] * 0.2
-    )
+#creating a new feature "PortfolioStrength" ---> Formula =0.5*projects + 0.3*hackathons + 0.2*research_papers
+def create_portfolio_strength(df: pd.DataFrame) -> pd.DataFrame:
+
+    df["PortfolioStrength"] = (df["projects"] * 0.5+ df["hackathons"] * 0.3+ df["research_papers"] * 0.2)
+
+    logger.info("PortfolioStrength created.")
+
     return df
 
-def add_technical_readiness(df):
-    """Languages_count*0.4 + Certifications*0.3 + SkillsScore*0.3"""
-    df["TechnicalReadiness"] = (
-        df["Languages_count"] * 0.4 +
-        df["Certifications"]  * 0.3 +
-        df["SkillsScore"]     * 0.3
-    )
+#creating a new feature "TechnicalReadiness" ---> Formula = 0.4*programming_language + 0.3*cerfication + 0.3*skill_score
+def create_technical_readiness(df: pd.DataFrame) -> pd.DataFrame:
+   
+    df["TechnicalReadiness"] = (df["programming_languages"] * 0.4+ df["certifications"] * 0.3+ df["skills_score"] * 0.3)
+
+    logger.info("TechnicalReadiness created.")
+
     return df
 
-def add_experience_quality(df):
-    """YearsExperience*0.6 + Internships*0.4 → min-max normalized"""
-    raw = df["YearsExperience"] * 0.6 + df["Internships"] * 0.4
-    mn, mx = raw.min(), raw.max()
-    df["ExperienceQuality"] = (raw - mn) / (mx - mn + 1e-8)
+#creating a new feature "ExperienceQuality" ---> Formula =0.6*exp_years + 0.4*internships , then normalizing the score ,converting into 0-1 range
+def create_experience_quality(df: pd.DataFrame) -> pd.DataFrame:
+    
+
+    raw = (df["experience_years"] * 0.6+ df["internships"] * 0.4)
+
+    df["ExperienceQuality"] = (raw - raw.min()) / (raw.max() - raw.min())
+
+    logger.info("ExperienceQuality created.")
+
     return df
 
-def add_learning_index(df):
-    """Certifications + ResearchPapers + Hackathons"""
-    df["LearningIndex"] = (
-        df["Certifications"] +
-        df["ResearchPapers"] +
-        df["Hackathons"]
-    )
+
+#creating a new feature "LearningIndex" ---> Formula =certifcation+research_papers+hackathons
+def create_learning_index(df: pd.DataFrame) -> pd.DataFrame:
+
+    df["LearningIndex"] = (df["certifications"]+ df["research_papers"]+ df["hackathons"])
+
+    logger.info("LearningIndex created.")
+
     return df
 
-# 2 NEW FEATURES 
+#creating a new feature "ProfileCompleteness" ---> which is how many profile details each student filled and stores the count 
+def create_profile_completeness(df: pd.DataFrame) -> pd.DataFrame:
+    
 
-def add_profile_completeness(df):
-    """
-    % of non-null AND non-zero fields per row.
-    High = candidate filled out profile completely.
-    """
-    feature_cols = [c for c in df.columns if c != "Hired"]
-    df["ProfileCompleteness"] = df[feature_cols].apply(
-        lambda row: (row.notna() & (row != 0)).sum() / len(row),
-        axis=1
-    )
-    return df
-
-def add_skill_experience_gap(df):
-    """
-    abs(SkillsScore - YearsExperience*10)
-    Large gap = skills don't match experience level.
-    """
-    df["SkillExperienceGap"] = abs(df["SkillsScore"] - df["YearsExperience"] * 10)
-    return df
-
-# SAVE FEATURE COLUMN LIST 
-
-def save_feature_columns(df, feat_cfg):
-    target = feat_cfg["target"]
-    feature_cols = [c for c in df.columns if c != target]
-    os.makedirs("artifacts", exist_ok=True)
-    joblib.dump(feature_cols, "artifacts/feature_columns.pkl")
-    print(f"[INFO] Saved {len(feature_cols)} feature columns → artifacts/feature_columns.pkl")
-    return feature_cols
-
-#  MAIN 
-def run_feature_engineering():
-    cfg      = load_config()
-    feat_cfg = load_features()
-    mode     = cfg.get("mode", "full").upper()
-
-    print(f"\n{'='*50}")
-    print(f"  FEATURE ENGINEERING  |  Mode: {mode}")
-    print(f"{'='*50}")
-
-    cleaned_path = "data/processed/cleaned.csv"
-    if not os.path.exists(cleaned_path):
-        raise FileNotFoundError("[ERROR] Run preprocessing first. cleaned.csv not found.")
-
-    df = pd.read_csv(cleaned_path)
-    print(f"[INFO] Loaded cleaned data → {df.shape}")
-
-    df = add_employability_score(df)
-    df = add_portfolio_strength(df)
-    df = add_technical_readiness(df)
-    df = add_experience_quality(df)
-    df = add_learning_index(df)
-    df = add_profile_completeness(df)
-    df = add_skill_experience_gap(df)
-
-    df.to_csv(cleaned_path, index=False)
-    print("[INFO] Updated cleaned.csv with 7 engineered features")
-
-    save_feature_columns(df, feat_cfg)
-
-    new_feats = [
-        "EmployabilityScore", "PortfolioStrength", "TechnicalReadiness",
-        "ExperienceQuality", "LearningIndex", "ProfileCompleteness", "SkillExperienceGap"
+    columns = [
+        "education_level",
+        "university_tier",
+        "cgpa",
+        "internships",
+        "projects",
+        "programming_languages",
+        "certifications",
+        "experience_years",
+        "hackathons",
+        "research_papers",
+        "skills_score",
+        "soft_skills_score",
+        "company_type",
     ]
-    print(f"[INFO] Features created: {new_feats}")
-    print(f"\n[DONE] Feature engineering complete | Mode: {mode}\n")
+
+    df["ProfileCompleteness"] = (
+        df[columns]
+        .notna()
+        .sum(axis=1)
+    )
+
+    logger.info("ProfileCompleteness created.")
+
     return df
 
+#creating a new feature "SkillExperienceGap" ---> Formula = |skillscore - exp_years*10|
+def create_skill_experience_gap(df: pd.DataFrame) -> pd.DataFrame:
+    df["SkillExperienceGap"] = abs(df["skills_score"] - df["experience_years"] * 10)
+
+    logger.info("SkillExperienceGap created.")
+
+    return df
+
+#A function to run all the create function
+def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+   
+    df = create_employability_score(df)
+    df = create_portfolio_strength(df)
+    df = create_technical_readiness(df)
+    df = create_experience_quality(df)
+    df = create_learning_index(df)
+    df = create_profile_completeness(df)
+    df = create_skill_experience_gap(df)
+
+    logger.info("Feature engineering completed.")
+
+    return df
+
+#main function
 if __name__ == "__main__":
-    run_feature_engineering()
+
+    from src.preprocessing import preprocess_data
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s - %(message)s",
+    )
+
+    df = preprocess_data()
+
+    df = engineer_features(df)
+
+    print(df.head())

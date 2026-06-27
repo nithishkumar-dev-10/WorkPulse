@@ -1,25 +1,57 @@
 
 
-mode: "sample"           
+mode: full
+sample_size: 5000
 
-sample_size: 5000        
+
 
 paths:
-  raw_data:    "data/raw/resume_dataset.csv"
-  processed:   "data/processed/cleaned.csv"
-  splits:      "data/splits/"
-  artifacts:   "artifacts/"
-  logs:        "logs/pipeline.log"
-  reports:     "reports/"
+
+  raw:
+    sample: "data/raw/resume_dataset_sample.csv"
+    full: "data/raw/resume_dataset.csv"
+
+  processed:
+    sample: "data/processed/processed_sample.csv"
+    full: "data/processed/processed_full.csv"
+
+  splits:
+    train: "data/splits/train.csv"
+    test: "data/splits/test.csv"
+
+  models:
+    logistic: "artifacts/models/logistic_regression.pkl"
+    random_forest: "artifacts/models/random_forest.pkl"
+    xgboost: "artifacts/models/xgboost.pkl"
+
+  artifacts:
+    preprocessor: "artifacts/preprocessor.pkl"
+    feature_columns: "artifacts/feature_columns.pkl"
+
+  reports:
+    figures: "reports/figures"
+    metrics: "reports/metrics"
+    summary: "reports/summary.md"
+
+  logs:
+    pipeline: "logs/pipeline.log"
+
+
+
 
 split:
-  test_size:    0.20
+  test_size: 0.20
   random_state: 42
-  stratify:     true
+  stratify: true
+
+
 
 smote:
-  apply:        true
+  enabled: true
   random_state: 42
 
+
+
+
 logging:
-  level: "INFO"
+  level: INFO

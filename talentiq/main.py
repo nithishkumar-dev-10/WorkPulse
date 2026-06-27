@@ -1,12 +1,54 @@
-import yaml
-from src.config_loader import load_config
+import argparse
+import logging
 
-def run():
-    config = load_config()
+from src.preprocessing import preprocess_data
+from src.feature_engineering import engineer_features
 
-    print(f"Project  : {config['project']['name']}")
-    print(f"Version  : {config['project']['version']}")
-    print(f"Target   : {config['data']['test_size']} test size")
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s - %(message)s",
+)
+
+logger = logging.getLogger(__name__)
+
+
+def main(stage: str) -> None:
+    """Run the requested pipeline stage."""
+
+    if stage == "preprocess":
+        preprocess_data()
+        logger.info("Preprocessing completed.")
+
+    elif stage == "features":
+        df = preprocess_data()
+        engineer_features(df)
+        logger.info("Feature engineering completed.")
+
+    elif stage == "pipeline":
+        df = preprocess_data()
+        engineer_features(df)
+        logger.info("Pipeline completed.")
+
+    else:
+        raise ValueError(f"Unknown stage: {stage}")
+
 
 if __name__ == "__main__":
-    run()
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--stage",
+        type=str,
+        default="pipeline",
+        choices=[
+            "preprocess",
+            "features",
+            "pipeline",
+        ],
+    )
+
+    args = parser.parse_args()
+
+    main(args.stage)

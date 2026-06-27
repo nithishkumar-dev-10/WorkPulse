@@ -1,51 +1,47 @@
+from functools import lru_cache
+from pathlib import Path
 
 import yaml
-import pandas as pd
-import os
 
-def load_config():
-    with open("config/config.yaml", "r") as f:
-        return yaml.safe_load(f)
+#This intially stores the current file path and the resolve is used find the entire path ,the parent.parent brings you to the root folder(talentiq)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent 
 
-def load_features():
-    with open("config/features.yaml", "r") as f:
-        return yaml.safe_load(f)
+#from the project_root dir , we are moving into config 
+CONFIG_DIR = PROJECT_ROOT / "config"
 
-def load_hyperparams():
-    with open("config/hyperparameters.yaml", "r") as f:
-        return yaml.safe_load(f)
+# from the root/config dir , we are specifically storing the path of the respective file's
+CONFIG_FILE = CONFIG_DIR / "config.yaml"
+FEATURES_FILE = CONFIG_DIR / "features.yaml"
+HYPERPARAMETERS_FILE = CONFIG_DIR / "hyperparameters.yaml"
 
-def load_data():
+
+#load the file and return it , raise error if the file is missing
+def _load_yaml(path: Path) -> dict:
     
-    cfg  = load_config()
-    path = cfg["paths"]["raw_data"]
-    mode = cfg.get("mode", "full")
+    if not path.exists():
+        raise FileNotFoundError(f"{path} not found.")
 
-    if not os.path.exists(path):
-        raise FileNotFoundError(
-            f"[ERROR] Dataset not found at: {path}\n"
-            f"        Place resume_dataset.csv inside data/raw/"
-        )
+    
+    with open(path, "r", encoding="utf-8") as file:
+        return yaml.safe_load(file)
 
-    if mode == "sample":
-        n  = cfg.get("sample_size", 5000)
-        df = pd.read_csv(path, nrows=n)
-        print(f"[INFO] Mode=SAMPLE → loaded {len(df)} rows")
-    else:
-        df = pd.read_csv(path)
-        print(f"[INFO] Mode=FULL → loaded {len(df)} rows")
 
-    return df
+#loading the config/config.yaml 
+def load_config():
+    return _load_yaml(CONFIG_FILE)
 
-if __name__ == "__main__":
-    cfg  = load_config()
-    feat = load_features()
-    hp   = load_hyperparams()
 
-    print(f"config.yaml      : {list(cfg.keys())}")
-    print(f"features.yaml    : {list(feat.keys())}")
-    print(f"hyperparams.yaml : {list(hp.keys())}")
-    print(f"Current mode     : {cfg.get('mode', 'full').upper()}")
+#loading the config/features.yaml
+def load_features():
+    return _load_yaml(FEATURES_FILE)
 
-    df = load_data()
-    print(f"Dataset shape    : {df.shape}")
+
+#loading the config/hyperparameters.yaml
+def load_hyperparameters():
+    return _load_yaml(HYPERPARAMETERS_FILE)
+
+#reloading all the files
+def reload_configs():
+    load_config.cache_clear()
+    load_features.cache_clear()
+    load_hyperparameters.cache_clear()
