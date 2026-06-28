@@ -156,7 +156,7 @@ def search_model(
         estimator=estimator,
         cv=hp["cv"],
         scoring=hp["scoring"],
-        n_jobs=-1,
+        n_jobs=1,
         verbose=1,
     )
 
