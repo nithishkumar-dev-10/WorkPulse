@@ -161,7 +161,7 @@ def train_all(
     models = {
         "logistic_regression": LogisticRegression(max_iter=1000),
         "random_forest":       RandomForestClassifier(),
-        "xgboost":             XGBClassifier(eval_metric="logloss", use_label_encoder=False, scale_pos_weight=5.25, min_child_weight=5, reg_alpha=0.1, reg_lambda=1.0),
+        "xgboost":             XGBClassifier(eval_metric="logloss", use_label_encoder=False),
     }
 
     display_names = {

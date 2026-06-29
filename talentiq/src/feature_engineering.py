@@ -56,5 +56,30 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df["TenureStabilityIndex"] = df["TotalWorkingYears"] / (df["NumCompaniesWorked"] + 1)
     logger.info("TenureStabilityIndex created.")
 
+    # 8. OverTimeXSatisfaction — overtime + low satisfaction = high attrition risk
+    if "OverTime" in df.columns and "JobSatisfaction" in df.columns:
+        overtime_flag = (df["OverTime"] == "Yes").astype(int)
+        sat_num = df["JobSatisfaction"].map(sat_map).fillna(2)
+        df["OverTimeXSatisfaction"] = overtime_flag * (5 - sat_num)
+    else:
+        df["OverTimeXSatisfaction"] = 0
+    logger.info("OverTimeXSatisfaction created.")
+
+    # 9. StagnationRisk — years since promotion relative to total tenure
+    df["StagnationRisk"] = df["YearsSinceLastPromotion"] / (df["YearsAtCompany"] + 1)
+    logger.info("StagnationRisk created.")
+
+    # 10. IncomeVsExperience — underpaid relative to experience = attrition signal
+    df["IncomeVsExperience"] = df["MonthlyIncome"] / (df["TotalWorkingYears"] + 1)
+    logger.info("IncomeVsExperience created.")
+
+    # 11. DistanceXOverTime — long commute + overtime = burnout risk
+    if "DistanceFromHome" in df.columns and "OverTime" in df.columns:
+        overtime_flag = (df["OverTime"] == "Yes").astype(int)
+        df["DistanceXOverTime"] = df["DistanceFromHome"] * overtime_flag
+    else:
+        df["DistanceXOverTime"] = 0
+    logger.info("DistanceXOverTime created.")
+
     logger.info("Feature engineering completed.")
     return df

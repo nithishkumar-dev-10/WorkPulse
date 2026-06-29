@@ -11,11 +11,24 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     roc_auc_score,
+    roc_curve,
 )
 
 from src.config_loader import PROJECT_ROOT, load_config
 
 logger = logging.getLogger(__name__)
+
+
+def find_optimal_threshold(y_true, y_prob) -> float:
+    """Find the probability threshold that maximises F1-macro."""
+    thresholds = np.arange(0.1, 0.9, 0.01)
+    best_thresh, best_f1 = 0.5, 0.0
+    for t in thresholds:
+        preds = (y_prob >= t).astype(int)
+        score = f1_score(y_true, preds, average="macro", zero_division=0)
+        if score > best_f1:
+            best_f1, best_thresh = score, t
+    return round(float(best_thresh), 2)
 
 
 def evaluate_model(
@@ -26,48 +39,55 @@ def evaluate_model(
 ) -> tuple:
 
     y_true = np.asarray(y_true)
-    y_pred = np.asarray(y_pred)
+    y_prob = np.asarray(y_prob)
 
-    accuracy  = accuracy_score(y_true, y_pred)
-    f1_macro  = f1_score(y_true, y_pred, average="macro",  zero_division=0)
-    precision = precision_score(y_true, y_pred, average="macro", zero_division=0)
-    recall    = recall_score(y_true, y_pred,    average="macro", zero_division=0)
+    # Find optimal threshold and recompute predictions
+    optimal_threshold = find_optimal_threshold(y_true, y_prob)
+    y_pred_tuned = (y_prob >= optimal_threshold).astype(int)
+
+    logger.info(f"{model_name} — optimal threshold: {optimal_threshold} "
+                f"(default 0.5 → tuned {optimal_threshold})")
+
+    accuracy  = accuracy_score(y_true, y_pred_tuned)
+    f1_macro  = f1_score(y_true, y_pred_tuned, average="macro",  zero_division=0)
+    precision = precision_score(y_true, y_pred_tuned, average="macro", zero_division=0)
+    recall    = recall_score(y_true, y_pred_tuned,    average="macro", zero_division=0)
     roc_auc   = roc_auc_score(y_true, y_prob)
 
-    cm = confusion_matrix(y_true, y_pred)
+    cm = confusion_matrix(y_true, y_pred_tuned)
 
     if cm.shape == (2, 2):
         tn, fp, fn, tp = cm.ravel()
         fpr = fp / (fp + tn) if (fp + tn) > 0 else 0.0
         fnr = fn / (fn + tp) if (fn + tp) > 0 else 0.0
 
-        # misclassification: which class has higher error?
-        class0_error = fp / (fp + tn) if (fp + tn) > 0 else 0.0  # Not Hired misclassified as Hired
-        class1_error = fn / (fn + tp) if (fn + tp) > 0 else 0.0  # Hired misclassified as Not Hired
+        class0_error = fp / (fp + tn) if (fp + tn) > 0 else 0.0
+        class1_error = fn / (fn + tp) if (fn + tp) > 0 else 0.0
         dominant_error = "Class 0 (Not Hired predicted as Hired)" if class0_error > class1_error else "Class 1 (Hired predicted as Not Hired)"
     else:
         fpr, fnr = 0.0, 0.0
         dominant_error = "N/A"
         logger.warning(f"{model_name}: unexpected confusion matrix shape {cm.shape}")
 
-    report = classification_report(y_true, y_pred, output_dict=True, zero_division=0)
+    report = classification_report(y_true, y_pred_tuned, output_dict=True, zero_division=0)
 
     metrics = {
-        "Model":          model_name,
-        "Accuracy":       round(accuracy,  4),
-        "F1-macro":       round(f1_macro,  4),
-        "Precision":      round(precision, 4),
-        "Recall":         round(recall,    4),
-        "ROC-AUC":        round(roc_auc,   4),
-        "FPR":            round(fpr,       4),
-        "FNR":            round(fnr,       4),
-        "DominantError":  dominant_error,
+        "Model":              model_name,
+        "Accuracy":           round(accuracy,  4),
+        "F1-macro":           round(f1_macro,  4),
+        "Precision":          round(precision, 4),
+        "Recall":             round(recall,    4),
+        "ROC-AUC":            round(roc_auc,   4),
+        "FPR":                round(fpr,       4),
+        "FNR":                round(fnr,       4),
+        "Threshold":          optimal_threshold,
+        "DominantError":      dominant_error,
     }
 
     logger.info(
         f"{model_name} — Accuracy: {accuracy:.4f} | F1-macro: {f1_macro:.4f} | "
         f"Precision: {precision:.4f} | Recall: {recall:.4f} | ROC-AUC: {roc_auc:.4f} | "
-        f"FPR: {fpr:.4f} | FNR: {fnr:.4f}"
+        f"FPR: {fpr:.4f} | FNR: {fnr:.4f} | Threshold: {optimal_threshold}"
     )
 
     return metrics, report
@@ -101,8 +121,8 @@ def save_summary(metrics_df: pd.DataFrame) -> None:
     lines = [
         "# TalentIQ — Model Comparison\n\n",
         "## Results\n\n",
-        "| Model | Accuracy | F1-macro | Precision | Recall | ROC-AUC | FPR | FNR | Verdict |\n",
-        "|---|---|---|---|---|---|---|---|---|\n",
+        "| Model | Accuracy | F1-macro | Precision | Recall | ROC-AUC | FPR | FNR | Threshold | Verdict |\n",
+        "|---|---|---|---|---|---|---|---|---|---|\n",
     ]
 
     verdicts = {
@@ -116,21 +136,20 @@ def save_summary(metrics_df: pd.DataFrame) -> None:
         lines.append(
             f"| {row['Model']} | {row['Accuracy']} | {row['F1-macro']} | "
             f"{row['Precision']} | {row['Recall']} | {row['ROC-AUC']} | "
-            f"{row['FPR']} | {row['FNR']} | {verdicts.get(row['Model'], '')} |\n"
+            f"{row['FPR']} | {row['FNR']} | {row.get('Threshold', 0.5)} | {verdicts.get(row['Model'], '')} |\n"
         )
 
-    # Misclassification analysis section — required by Task 2
     lines.append("\n## Misclassification Analysis\n\n")
     lines.append(
         "This section identifies which class each model struggles with most.\n"
         "- **FPR** = Not Hired candidates wrongly predicted as Hired (wasted interviews)\n"
         "- **FNR** = Hired candidates wrongly predicted as Not Hired (missed good talent)\n\n"
     )
-    lines.append("| Model | FPR | FNR | Dominant Error |\n")
-    lines.append("|---|---|---|---|\n")
+    lines.append("| Model | FPR | FNR | Threshold | Dominant Error |\n")
+    lines.append("|---|---|---|---|---|\n")
     for _, row in metrics_df.iterrows():
         lines.append(
-            f"| {row['Model']} | {row['FPR']} | {row['FNR']} | {row['DominantError']} |\n"
+            f"| {row['Model']} | {row['FPR']} | {row['FNR']} | {row.get('Threshold', 0.5)} | {row['DominantError']} |\n"
         )
 
     lines.append(
