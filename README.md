@@ -2,7 +2,7 @@
 
 <br/>
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f2027,50:203a43,100:2c5364&height=200&section=header&text=TalentIQ&fontSize=80&fontColor=ffffff&fontAlignY=38&desc=%20Candidate%20Shortlisting%20System&descAlignY=58&descSize=18&descColor=90cdf4&animation=fadeIn" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f2027,50:203a43,100:2c5364&height=200&section=header&text=WorkPulse&fontSize=80&fontColor=ffffff&fontAlignY=38&desc=AI-Powered%20Employee%20Attrition%20Prediction%20System&descAlignY=58&descSize=18&descColor=90cdf4&animation=fadeIn" width="100%"/>
 
 <br/>
 
@@ -11,7 +11,7 @@
 <td align="center">
 
 ```
-  🧠  Predict · Compare · Shortlist  🎯
+  🧠  Predict · Analyze · Retain  🎯
 ```
 
 </td>
@@ -54,7 +54,7 @@
 <br/>
 <b>🎯 Task</b><br/>
 Binary Classification<br/>
-<code>Hired = Yes / No</code>
+<code>Attrition = Yes / No</code>
 </td>
 <td align="center" width="25%" style="padding: 10px">
 <br/>
@@ -79,11 +79,12 @@ XGBoost<br/>
 
 <br/>
 
-> *"Recruiters receive hundreds to thousands of resumes per job opening.*  
-> *Manual screening is slow, inconsistent, and unscalable."*
+> *"Employees may leave for various reasons — better salary opportunities, career growth,*  
+> *improved work-life balance, job dissatisfaction, or personal reasons.*  
+> *HR departments often struggle to identify employees who are at risk of leaving before they resign."*
 >
-> **TalentIQ fixes that** — a tuned ML pipeline trained on structured candidate data:  
-> education · experience · skills · certifications · projects · soft skills
+> **WorkPulse fixes that** — a tuned ML pipeline trained on structured employee data:  
+> demographics · job role · satisfaction · tenure · workload · compensation
 
 <br/>
 
@@ -114,23 +115,31 @@ XGBoost<br/>
 
 ## 🎯 Problem Statement
 
+Employee attrition is a major challenge for organizations. Employees may leave for various reasons, such as **better salary opportunities, career growth, improved work-life balance, job dissatisfaction, or personal reasons**. High employee turnover increases recruitment and training costs, results in the loss of experienced talent, and disrupts business operations.
+
+As a result, HR departments often struggle to identify employees who are at risk of leaving before they resign.
+
+This project addresses that challenge by building a **machine learning-based employee attrition prediction system**. By analyzing an employee's demographic, job-related, and workplace attributes, the model predicts whether an employee is likely to leave the organization, enabling HR teams to take proactive retention measures.
+
 <table>
 <tr>
 <td width="50%">
 
 ### The Challenge
-- Recruiters receive **hundreds to thousands** of resumes per job opening
-- Manual screening is **slow, inconsistent, and unscalable**
-- Subjective bias leads to **missed talent and wasted interviews**
+- Employees leave for **salary, career growth, work-life balance, dissatisfaction, or personal reasons**
+- High turnover drives up **recruitment and training costs**
+- Losing experienced talent **disrupts business operations**
+- HR teams struggle to spot **at-risk employees before they resign**
 
 </td>
 <td width="50%">
 
 ### The Solution
-- Binary classifier → **Shortlisted (Yes / No)**
+- Binary classifier → **Attrition (Yes / No)**
 - Compare **3 ML models** head-to-head
 - Select winner by **F1-macro + ROC-AUC** (handles class imbalance)
 - Full pipeline: EDA → Engineering → Tuning → Evaluation
+- Surfaces at-risk employees so HR can act **proactively**
 
 </td>
 </tr>
@@ -141,7 +150,7 @@ XGBoost<br/>
 ## 📁 Project Structure
 
 ```
-TalentIQ/
+WorkPulse/
 │
 ├── 📂 config/
 │   ├── config.yaml              # Pipeline mode, paths, split settings, SMOTE config
@@ -283,21 +292,21 @@ Understanding *where* models fail is as important as overall accuracy.
 
 | Model | FPR | FNR | Dominant Error |
 |:------|:---:|:---:|:--------------|
-| Logistic Regression | 0.0769 | **0.5106** | Misses good candidates |
-| Random Forest | 0.1174 | **0.4255** | Misses good candidates |
+| Logistic Regression | 0.0769 | **0.5106** | Misses at-risk employees |
+| Random Forest | 0.1174 | **0.4255** | Misses at-risk employees |
 | **XGBoost** | **0.0850** | **0.4894** | **Best FPR + FNR balance** |
 
 </div>
 
 ```
-FPR (False Positive Rate) = Not-Hired candidates predicted as Hired
-                          → Wasted recruiter time on bad-fit interviews
+FPR (False Positive Rate) = Employees who stayed predicted as Attrition
+                          → Wasted retention effort on low-risk employees
 
-FNR (False Negative Rate) = Hired candidates predicted as Not-Hired
-                          → Missed good talent — costly in competitive hiring
+FNR (False Negative Rate) = Employees who left predicted as No Attrition
+                          → Missed at-risk employees — costly, unplanned turnover
 ```
 
-**Business Insight:** All models struggle most with FNR (missing qualified candidates). XGBoost achieves the best balance — lowest FPR while keeping FNR competitive with Random Forest.
+**Business Insight:** All models struggle most with FNR (missing employees who actually leave). XGBoost achieves the best balance — lowest FPR while keeping FNR competitive with Random Forest.
 
 ---
 
@@ -305,12 +314,12 @@ FNR (False Negative Rate) = Hired candidates predicted as Not-Hired
 
 ```
 Logistic Regression  →  Linear decision boundary. Cannot capture non-linear
-                         hiring patterns (e.g., interaction between OverTime +
+                         attrition patterns (e.g., interaction between OverTime +
                          low satisfaction + low income). Good baseline, not enough.
 
 Random Forest        →  Handles feature interactions well. But sensitive to
                          depth and sampling parameters. Higher FPR (0.1174) means
-                         more wasted interviews.
+                         more wasted retention interventions on low-risk employees.
 
 XGBoost ✅           →  Gradient boosting on structured data. Handles imbalance
                          well when tuned. Best F1-macro (0.7165) + lowest FPR.
@@ -391,8 +400,8 @@ Feature impact on predictions
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/yourusername/TalentIQ.git
-cd TalentIQ
+git clone https://github.com/yourusername/WorkPulse.git
+cd WorkPulse
 pip install -r requirements.txt
 ```
 
@@ -487,9 +496,9 @@ with open("artifacts/feature_columns.pkl", "rb") as f:
     feature_columns = pickle.load(f)
 
 # Predict on new data
-X_new = pd.DataFrame([...])  # structured candidate profile
+X_new = pd.DataFrame([...])  # structured employee profile
 X_processed = preprocessor.transform(X_new)[feature_columns]
-prediction = model.predict(X_processed)   # 0 = Not Hired, 1 = Hired
+prediction = model.predict(X_processed)   # 0 = Stayed, 1 = Left (Attrition)
 probability = model.predict_proba(X_processed)[:, 1]
 ```
 
@@ -534,6 +543,6 @@ probability = model.predict_proba(X_processed)[:, 1]
 
 <br/>
 
-⭐ Star this repo if TalentIQ helped you learn ML pipelines!
+⭐ Star this repo if WorkPulse helped you learn ML pipelines!
 
 </div>
