@@ -3,7 +3,7 @@ from pathlib import Path
 
 import yaml
 
-#This intially stores the current file path and the resolve is used find the entire path ,the parent.parent brings you to the root folder(talentiq)
+#This intially stores the current file path and the resolve is used find the entire path ,the parent.parent brings you to the root folder(workpulse)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent 
 
 #from the project_root dir , we are moving into config 
