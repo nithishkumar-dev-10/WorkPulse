@@ -197,6 +197,109 @@ def plot_model_comparison(
 
     logger.info("Model comparison saved.")
 
+#plotting class_distribution
+def plot_class_distribution(
+    y,
+    target_name: str = "Target",
+) -> None:
+    """Plot class distribution of the target variable."""
+
+    cfg = load_config()
+
+    figure_path = Path(
+        cfg["paths"]["reports"]["figures"]
+    )
+
+    figure_path.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    class_counts = (
+        pd.Series(y)
+        .value_counts()
+        .sort_index()
+    )
+
+    plt.figure(figsize=(6, 5))
+
+    sns.barplot(
+        x=class_counts.index.astype(str),
+        y=class_counts.values,
+    )
+
+    plt.xlabel(target_name)
+
+    plt.ylabel("Count")
+
+    plt.title(f"{target_name} Class Distribution")
+
+    plt.tight_layout()
+
+    plt.savefig(
+        figure_path / "class_distribution.png"
+    )
+
+    plt.close()
+
+    logger.info("Class distribution plot saved.")
+
+#plotting boxplots
+def plot_boxplots(
+    df: pd.DataFrame,
+    numeric_cols,
+) -> None:
+    """Plot boxplots for numeric features to inspect spread and outliers."""
+
+    cfg = load_config()
+
+    figure_path = Path(
+        cfg["paths"]["reports"]["figures"]
+    )
+
+    figure_path.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    n_cols = 3
+
+    n_rows = -(-len(numeric_cols) // n_cols)
+
+    fig, axes = plt.subplots(
+        n_rows,
+        n_cols,
+        figsize=(5 * n_cols, 4 * n_rows),
+    )
+
+    axes = axes.flatten()
+
+    for idx, col in enumerate(numeric_cols):
+
+        sns.boxplot(
+            data=df,
+            y=col,
+            ax=axes[idx],
+        )
+
+        axes[idx].set_title(col)
+
+    for idx in range(len(numeric_cols), len(axes)):
+
+        fig.delaxes(axes[idx])
+
+    fig.suptitle("Feature Boxplots")
+
+    plt.tight_layout()
+
+    plt.savefig(
+        figure_path / "boxplots.png"
+    )
+
+    plt.close()
+
+    logger.info("Boxplots saved.")
+
 #main
 if __name__ == "__main__":
 
