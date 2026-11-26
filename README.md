@@ -2,7 +2,7 @@
 
 <br/>
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f2027,50:203a43,100:2c5364&height=200&section=header&text=WorkPulse&fontSize=80&fontColor=ffffff&fontAlignY=38&desc=Employee%20Attrition%20Risk%20%26%20Explainability%20Platform&descAlignY=58&descSize=18&descColor=90cdf4&animation=fadeIn" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f2027,50:203a43,100:2c5364&height=200&section=header&text=WorkPulse&fontSize=80&fontColor=ffffff&fontAlignY=38&desc=Employee%20Attrition%20Risk%20and%20Explainability%20Platform&descAlignY=58&descSize=18&descColor=90cdf4&animation=fadeIn" width="100%"/>
 
 <br/>
 
@@ -20,8 +20,16 @@
 
 <br/>
 
-<!-- LIVE DEMO -->
-[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-workpulse--2xtk.onrender.com-0ea5e9?style=for-the-badge&labelColor=0f172a)](https://workpulse-2xtk.onrender.com/)
+<!-- LIVE DEMO HERO -->
+<a href="https://workpulse-2xtk.onrender.com/">
+<img src="https://capsule-render.vercel.app/api?type=soft&color=0:0ea5e9,100:8b5cf6&height=90&section=header&text=%F0%9F%9A%80%20Try%20the%20Live%20Demo&fontSize=34&fontColor=ffffff&fontAlignY=50" width="60%"/>
+</a>
+
+<br/>
+
+[![Status](https://img.shields.io/badge/●%20STATUS-LIVE-22c55e?style=for-the-badge&labelColor=0f172a)](https://workpulse-2xtk.onrender.com/)
+[![URL](https://img.shields.io/badge/🌐%20workpulse--2xtk.onrender.com-0ea5e9?style=for-the-badge&labelColor=0f172a)](https://workpulse-2xtk.onrender.com/)
+[![Hosted](https://img.shields.io/badge/Hosted%20on-Render-8b5cf6?style=for-the-badge&labelColor=0f172a)](https://render.com)
 
 <br/>
 
@@ -61,13 +69,13 @@
 
 ---
 
-<table border="0" width="85%">
+<table border="0" width="95%">
 <tr>
 <td align="center" width="25%" style="padding: 10px">
 <br/>
 <b>🎯 Task</b><br/>
 Binary Classification<br/>
-<code>Attrition = Yes / No</code>
+<code>Yes / No</code>
 </td>
 <td align="center" width="25%" style="padding: 10px">
 <br/>
@@ -101,9 +109,35 @@ XGBoost<br/>
 
 <br/>
 
-### 🚀 [**Try the Live Demo →**](https://workpulse-2xtk.onrender.com/)
+<table border="0" width="85%">
+<tr>
+<td align="center" width="33%">
+<br/>
+<b>1️⃣ Sign up</b><br/>
+Create an account<br/>
+<code>secure cookie auth</code>
+<br/><br/>
+</td>
+<td align="center" width="33%">
+<br/>
+<b>2️⃣ Score</b><br/>
+One profile or a CSV<br/>
+<code>up to 500 rows</code>
+<br/><br/>
+</td>
+<td align="center" width="33%">
+<br/>
+<b>3️⃣ Explain</b><br/>
+See the top-5 SHAP drivers<br/>
+<code>why this risk score?</code>
+<br/><br/>
+</td>
+</tr>
+</table>
 
-<sub>If the demo is hosted on a free tier, the first load may take a few seconds while the server wakes up.</sub>
+### 👉 [**Open WorkPulse Live →**](https://workpulse-2xtk.onrender.com/)
+
+<sub>⏳ On the free tier, the first load can take a few seconds while the server wakes up.</sub>
 
 <br/>
 
@@ -517,7 +551,7 @@ Feature impact on predictions
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/yourusername/WorkPulse.git
+git clone https://github.com/nithishkumar-dev-10/WorkPulse.git
 cd WorkPulse/workpulse
 python -m venv venv
 venv/bin/pip install -r requirements.txt
@@ -692,12 +726,12 @@ prediction = (probability >= 0.39).astype(int)   # 0 = Stayed, 1 = Left (Attriti
 
 <div align="center">
 
-**Built by [Nithish Kumar S](https://github.com/yourusername)**  
+**Built by [Nithish Kumar S](https://github.com/nithishkumar-dev-10)**  
 *Second-year CS student · AI Engineer in progress*
 
 <br/>
 
-### 🚀 [Live Demo](https://workpulse-2xtk.onrender.com/)
+[![Live Demo](https://img.shields.io/badge/🚀%20Open%20Live%20Demo-0ea5e9?style=for-the-badge&labelColor=0f172a)](https://workpulse-2xtk.onrender.com/)
 
 <br/>
 
