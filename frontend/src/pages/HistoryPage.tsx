@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { clearHistory, loadHistory } from "@/lib/history";
-import { formatPercent } from "@/lib/utils";
+import { cn, formatPercent } from "@/lib/utils";
 import { riskTone } from "@/lib/risk";
 import type { HistoryEntry } from "@/types/api";
 
@@ -50,7 +50,7 @@ export function HistoryPage() {
         <div>
           <Badge tone="accent">Local record</Badge>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Assessment history
+            <span className="text-gradient text-gradient-indigo">Assessment history</span>
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             Your last 20 single-employee assessments, stored only in this browser. Reopen one to
@@ -74,9 +74,9 @@ export function HistoryPage() {
 
       {entries.length === 0 ? (
         <Card className="mx-auto max-w-xl p-10 text-center">
-          <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+          <span className="icon-badge icon-badge-blue mx-auto mb-5 h-14 w-14">
             <Clock3 className="h-6 w-6" aria-hidden="true" />
-          </div>
+          </span>
           <h2 className="text-xl font-bold">No assessments yet</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Complete a prediction in the Predict tab and it will appear here automatically.
@@ -87,16 +87,19 @@ export function HistoryPage() {
         </Card>
       ) : (
         <>
-          <div className="flex gap-1 rounded-xl bg-card-muted p-1 sm:w-fit" role="group" aria-label="Filter history">
+          <div className="flex gap-1 rounded-2xl border border-white/70 bg-card-muted/70 p-1 shadow-soft backdrop-blur sm:w-fit" role="group" aria-label="Filter history">
             {(["all", "high", "low"] as const).map((value) => (
               <button
                 key={value}
                 type="button"
                 onClick={() => setFilter(value)}
                 aria-pressed={filter === value}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition-colors ${
-                  filter === value ? "bg-card text-accent shadow-soft" : "text-muted-foreground hover:text-foreground"
-                }`}
+                className={cn(
+                  "rounded-xl px-3 py-1.5 text-xs font-semibold capitalize transition-all duration-300",
+                  filter === value
+                    ? "segment-active"
+                    : "text-muted-foreground hover:bg-white/70 hover:text-foreground",
+                )}
               >
                 {value === "all" ? "All" : value === "high" ? "High risk" : "Low risk"}
               </button>
@@ -113,8 +116,12 @@ export function HistoryPage() {
                 <AreaChart data={chartData} margin={{ top: 4, right: 8, left: -12 }}>
                   <defs>
                     <linearGradient id="riskFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--accent))" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="hsl(var(--accent))" stopOpacity={0} />
+                      <stop offset="0%" stopColor="hsl(var(--royal))" stopOpacity={0.32} />
+                      <stop offset="100%" stopColor="hsl(var(--cyan))" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="riskLine" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="hsl(var(--indigo))" />
+                      <stop offset="100%" stopColor="hsl(var(--teal))" />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
@@ -122,9 +129,9 @@ export function HistoryPage() {
                   <YAxis domain={[0, 1]} tickFormatter={(v: number) => `${Math.round(v * 100)}%`} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
                   <Tooltip
                     formatter={(value: number) => [formatPercent(value), "Likelihood"]}
-                    contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }}
+                    contentStyle={{ borderRadius: 14, border: "1px solid hsl(0 0% 100% / 0.9)", background: "hsl(var(--card) / 0.95)", boxShadow: "0 12px 30px -12px hsl(var(--shadow) / 0.3)", backdropFilter: "blur(12px)", fontSize: 12 }}
                   />
-                  <Area type="monotone" dataKey="probability" stroke="hsl(var(--accent))" strokeWidth={2} fill="url(#riskFill)" />
+                  <Area type="monotone" dataKey="probability" stroke="url(#riskLine)" strokeWidth={2.5} fill="url(#riskFill)" />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContent>
@@ -132,13 +139,26 @@ export function HistoryPage() {
 
           <div className="grid gap-3 lg:grid-cols-2">
             {visible.map((entry) => (
-              <Card key={entry.id} className="p-5">
+              <Card
+                key={entry.id}
+                className={cn(
+                  "accent-bar p-5 shadow-float",
+                  entry.prediction === "Yes" ? "accent-indigo" : "accent-teal",
+                )}
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="label-text">
                       {new Date(entry.timestamp).toLocaleString()}
                     </p>
-                    <p className="num mt-2 text-2xl font-bold">{formatPercent(entry.probability)}</p>
+                    <p
+                      className={cn(
+                        "num mt-2 text-2xl font-extrabold tracking-tight text-gradient",
+                        entry.prediction === "Yes" ? "text-gradient-indigo" : "text-gradient-teal",
+                      )}
+                    >
+                      {formatPercent(entry.probability)}
+                    </p>
                   </div>
                   <Badge tone={riskTone(entry.probability, entry.threshold)}>
                     {entry.prediction === "Yes" ? "High risk" : "Low risk"}
@@ -152,7 +172,7 @@ export function HistoryPage() {
                   {Object.entries(entry.employee)
                     .slice(0, 4)
                     .map(([key, value]) => (
-                      <span key={key} className="num rounded-lg bg-card-muted px-2 py-1 text-[10px] text-muted-foreground">
+                      <span key={key} className="num glass-panel rounded-lg px-2 py-1 text-[10px] text-muted-foreground">
                         {key}: {String(value)}
                       </span>
                     ))}

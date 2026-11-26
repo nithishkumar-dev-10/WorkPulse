@@ -6,7 +6,6 @@ import { Loader2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/auth/AuthContext";
 import { Logo } from "@/components/layout/Logo";
-import { StatusPill } from "@/components/layout/StatusPill";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -50,7 +49,9 @@ export function SignupPage() {
     <div className="min-h-screen px-4 py-8">
       <header className="mx-auto flex max-w-6xl items-center justify-between">
         <Logo />
-        <StatusPill />
+        <span className="hidden text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground sm:block">
+          Executive analytics
+        </span>
       </header>
 
       <div className="mx-auto mt-10 max-w-md">

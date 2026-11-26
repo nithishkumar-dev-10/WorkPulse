@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from "react";
 import { Info } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,6 +12,16 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip } from "@/components/ui/tooltip";
+import {
+  COMMUTE_MAPPING_NOTE,
+  COMMUTE_PRESETS,
+  EDUCATION_TIERS,
+  MAX_COMMUTE_KM,
+  MODEL_DISTANCE_MAX,
+  commuteKmToModel,
+  commuteModelToKm,
+  educationTierLabel,
+} from "@/lib/modelInputs";
 import type { SchemaField } from "@/types/api";
 import { cn, formatPercent } from "@/lib/utils";
 
@@ -21,9 +33,131 @@ interface Props {
   disabled?: boolean;
 }
 
+interface MappedProps {
+  id: string;
+  value: number | string;
+  onChange: (value: number | string) => void;
+  describedBy?: string;
+  disabled?: boolean;
+}
+
+function EducationField({ id, value, onChange, describedBy, disabled }: MappedProps) {
+  const tier = Math.min(5, Math.max(1, Math.round(Number(value))));
+
+  return (
+    <div className="space-y-2.5">
+      <Select
+        value={String(tier)}
+        onValueChange={(next) => onChange(Number(next))}
+        disabled={disabled}
+      >
+        <SelectTrigger
+          id={id}
+          aria-describedby={describedBy}
+          className="text-xs sm:text-sm [&>span]:truncate"
+        >
+          <SelectValue placeholder="Select your qualification" />
+        </SelectTrigger>
+        <SelectContent>
+          {EDUCATION_TIERS.map((item) => (
+            <SelectItem key={item.tier} value={String(item.tier)} className="whitespace-normal text-xs">
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Badge tone="accent" className="num">
+          Model Tier: {tier} / 5
+        </Badge>
+        <span className="text-[11px] leading-relaxed text-muted-foreground">
+          {educationTierLabel(tier)} is sent to the model as <span className="num">{tier}</span>.
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function CommuteField({ id, value, onChange, describedBy, disabled }: MappedProps) {
+  const modelValue = Math.min(
+    MODEL_DISTANCE_MAX,
+    Math.max(1, Math.round(Number(value))),
+  );
+  const [km, setKm] = useState(() => commuteModelToKm(modelValue));
+  const lastEmitted = useRef<{ km: number; model: number } | null>(null);
+  const hintId = `${id}-hint`;
+
+  // Keep the km box in sync with resets, samples and reopened history entries,
+  // without overwriting what the user just typed.
+  useEffect(() => {
+    const emitted = lastEmitted.current;
+    if (emitted && emitted.model === modelValue && commuteKmToModel(emitted.km) === modelValue) {
+      return;
+    }
+    setKm(commuteModelToKm(modelValue));
+  }, [modelValue]);
+
+  const updateKm = (next: number) => {
+    const bounded = Math.min(MAX_COMMUTE_KM, Math.max(0, Math.round(next || 0)));
+    const mapped = commuteKmToModel(bounded);
+    setKm(bounded);
+    lastEmitted.current = { km: bounded, model: mapped };
+    onChange(mapped);
+  };
+
+  return (
+    <div className="space-y-2.5">
+      <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex items-center gap-2">
+          <Input
+            id={id}
+            type="number"
+            min={0}
+            max={MAX_COMMUTE_KM}
+            step={1}
+            aria-describedby={cn(describedBy, hintId) || undefined}
+            value={km}
+            onChange={(event) => updateKm(Number(event.target.value))}
+            disabled={disabled}
+            className="num w-24"
+          />
+          <span className="text-sm font-semibold text-muted-foreground">km</span>
+        </div>
+        <Badge tone="accent" className="num">
+          Normalized model scale: {modelValue} / {MODEL_DISTANCE_MAX}
+        </Badge>
+      </div>
+      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Commute distance presets">
+        {COMMUTE_PRESETS.map((preset) => (
+          <button
+            key={preset.label}
+            type="button"
+            disabled={disabled}
+            onClick={() => updateKm(preset.km)}
+            aria-pressed={km === preset.km}
+            className={cn(
+              "rounded-full px-2.5 py-1 text-[11px] font-semibold transition-all duration-300",
+              km === preset.km
+                ? "segment-active"
+                : "glass-panel text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {preset.label}
+          </button>
+        ))}
+      </div>
+      <p id={hintId} className="text-[11px] leading-relaxed text-muted-foreground">
+        Real-world km is normalized into the model&apos;s 1–29 domain: {COMMUTE_MAPPING_NOTE}.
+      </p>
+    </div>
+  );
+}
+
 export function FieldRenderer({ field, value, onChange, error, disabled }: Props) {
   const id = `field-${field.name}`;
   const describedBy = error ? `${id}-error` : undefined;
+  const isMappedField = field.name === "Education" || field.name === "DistanceFromHome";
+  const mappedProps: MappedProps = { id, value, onChange, describedBy, disabled };
 
   return (
     <div className="space-y-2.5">
@@ -31,7 +165,7 @@ export function FieldRenderer({ field, value, onChange, error, disabled }: Props
         <label htmlFor={id} className="text-sm font-semibold">
           {field.label}
         </label>
-        {field.type === "integer" && (
+        {field.type === "integer" && !isMappedField && (
           <span className="num rounded-lg bg-card-muted px-2 py-1 text-xs font-semibold text-foreground">
             {String(value)}
           </span>
@@ -45,7 +179,11 @@ export function FieldRenderer({ field, value, onChange, error, disabled }: Props
         )}
       </div>
 
-      {field.type === "integer" ? (
+      {field.name === "Education" ? (
+        <EducationField {...mappedProps} />
+      ) : field.name === "DistanceFromHome" ? (
+        <CommuteField {...mappedProps} />
+      ) : field.type === "integer" ? (
         <div className="flex items-center gap-4">
           <Slider
             id={id}
@@ -104,7 +242,7 @@ export function FieldRenderer({ field, value, onChange, error, disabled }: Props
         </Select>
       )}
 
-      {field.type === "integer" && field.min !== null && field.max !== null && (
+      {!isMappedField && field.type === "integer" && field.min !== null && field.max !== null && (
         <div className="num flex justify-between text-[10px] text-muted-foreground">
           <span>{field.min}</span>
           <span>

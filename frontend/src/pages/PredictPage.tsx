@@ -171,6 +171,8 @@ export function PredictPage() {
     try {
       const response = await fetch(`${import.meta.env.BASE_URL}examples/employee.json`);
       if (!response.ok) throw new Error("sample unavailable");
+      // The preset stores model-domain values: Education 3 (Bachelor's) and
+      // DistanceFromHome 15 (a 15 km city commute on the normalized scale).
       const sample = (await response.json()) as Employee;
       const allowed = new Set(fields.map((field) => field.name));
       reset(Object.fromEntries(Object.entries(sample).filter(([key]) => allowed.has(key))));
@@ -205,12 +207,12 @@ export function PredictPage() {
         <div>
           <Badge tone="accent">Primary analysis</Badge>
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Attrition risk assessment
+            <span className="text-gradient text-gradient-indigo">Attrition risk assessment</span>
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Estimate how likely an employee is to leave, based on their profile. The form
-            is generated from the backend schema — every field, range and option comes
-            from the API.
+            Estimate how likely an employee is to leave, based on their profile. Enter a
+            real qualification and commute distance in km — both are translated to the
+            exact numeric scale the model was trained on.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -244,7 +246,7 @@ export function PredictPage() {
                 Step {step + 1} of {groups.length} · {groups[step]}
               </CardDescription>
             </div>
-            <fieldset className="flex flex-wrap gap-1 rounded-xl bg-card-muted p-1" aria-label="Prediction model">
+            <fieldset className="flex flex-wrap gap-1 rounded-2xl border border-white/70 bg-card-muted/70 p-1 shadow-soft backdrop-blur" aria-label="Prediction model">
               {models.map((item) => (
                 <button
                   key={item.id}
@@ -253,10 +255,10 @@ export function PredictPage() {
                   onClick={() => setModel(item.id)}
                   aria-pressed={model === item.id}
                   className={cn(
-                    "rounded-lg px-3 py-1.5 text-xs font-semibold transition-all",
+                    "rounded-xl px-3 py-1.5 text-xs font-semibold transition-all duration-300",
                     model === item.id
-                      ? "bg-card text-accent shadow-soft"
-                      : "text-muted-foreground hover:text-foreground",
+                      ? "segment-active"
+                      : "text-muted-foreground hover:bg-white/70 hover:text-foreground",
                   )}
                 >
                   {item.name}
@@ -269,8 +271,10 @@ export function PredictPage() {
               <span
                 key={group}
                 className={cn(
-                  "h-1.5 flex-1 rounded-full transition-colors",
-                  index <= step ? "bg-accent" : "bg-card-muted",
+                  "h-1.5 flex-1 rounded-full transition-all duration-300",
+                  index <= step
+                    ? "bg-gradient-to-r from-indigo via-royal to-teal shadow-[0_2px_8px_-2px_hsl(var(--royal)/0.6)]"
+                    : "bg-card-muted",
                 )}
               />
             ))}
@@ -341,7 +345,7 @@ export function PredictPage() {
       </Card>
 
       {(predictMutation.isPending || result) && (
-        <Card className="overflow-hidden border-accent/20">
+        <Card className="overflow-hidden border-royal/25 shadow-float">
           <CardHeader>
             <CardTitle>Assessment</CardTitle>
             <CardDescription>
@@ -361,7 +365,8 @@ export function PredictPage() {
                     threshold={result.prediction.threshold}
                   />
                   <div className="space-y-4">
-                    <div className="rounded-2xl border border-border bg-card-muted/50 p-5">
+                    <div className="glass-panel relative overflow-hidden p-5">
+                      <span className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-indigo via-royal to-teal" aria-hidden="true" />
                       <p className="label-text">Interpretation</p>
                       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                         {result.prediction.prediction === "Yes"
@@ -397,11 +402,12 @@ export function PredictPage() {
                     <Badge tone="neutral">SHAP</Badge>
                   </div>
                   {result.explanation ? (
-                    <FactorChart factors={result.explanation.top_factors} />
+                    <div className="glass-panel p-4">
+                      <FactorChart factors={result.explanation.top_factors} />
+                    </div>
                   ) : (
-                    <p className="rounded-xl bg-card-muted p-4 text-sm text-muted-foreground">
-                      Explanations are disabled on this server. Set{" "}
-                      <code className="num">ENABLE_EXPLAIN=1</code> to see contributing factors.
+                    <p className="glass-panel p-4 text-sm text-muted-foreground">
+                      Contributing factors aren&apos;t available on this server right now.
                     </p>
                   )}
                   <p className="mt-3 text-xs leading-relaxed text-muted-foreground">

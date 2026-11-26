@@ -16,6 +16,23 @@ export function setUnauthorizedHandler(handler: (() => void) | null): void {
   unauthorizedHandler = handler;
 }
 
+async function backendIsReachable(): Promise<boolean> {
+  try {
+    // `no-cors` resolves for a live server even when CORS blocks reading the response.
+    await fetch(`${API_URL}/health`, { method: "GET", mode: "no-cors", cache: "no-store" });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function networkErrorMessage(): Promise<string> {
+  if (await backendIsReachable()) {
+    return `The API at ${API_URL} is reachable, but this origin was blocked by CORS. Check CORS_ORIGINS / FRONTEND_ORIGIN.`;
+  }
+  return `Cannot reach the API at ${API_URL}. Start the backend first.`;
+}
+
 export async function apiError(response: Response): Promise<string> {
   const body = await response.json().catch(() => null);
   const detail = body?.detail;
@@ -59,7 +76,7 @@ async function request<T>(
       },
     });
   } catch {
-    throw new Error(`Cannot reach the API at ${API_URL}. Start the backend first.`);
+    throw new Error(await networkErrorMessage());
   }
 
   if (response.status === 401 && retryOn401 && path !== "/api/auth/refresh") {

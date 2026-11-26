@@ -11,10 +11,12 @@ function toneFor(probability: number, threshold: number) {
   return "low" as const;
 }
 
-const stroke: Record<ReturnType<typeof toneFor>, string> = {
-  high: "hsl(var(--risk-high))",
-  medium: "hsl(var(--risk-medium))",
-  low: "hsl(var(--risk-low))",
+type Tone = ReturnType<typeof toneFor>;
+
+const gradientStops: Record<Tone, [string, string]> = {
+  high: ["hsl(0 68% 46%)", "hsl(20 88% 54%)"],
+  medium: ["hsl(var(--risk-medium))", "hsl(45 95% 54%)"],
+  low: ["hsl(var(--teal))", "hsl(var(--cyan))"],
 };
 
 export function RiskGauge({
@@ -42,13 +44,20 @@ export function RiskGauge({
   const markerY = 100 + RADIUS * Math.sin(angle);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="card-surface flex flex-col items-center p-6 shadow-float sm:p-7">
       <div
         className="relative"
         role="img"
         aria-label={`${Math.round(probability * 100)} percent attrition likelihood. Decision threshold ${Math.round(threshold * 100)} percent.`}
       >
         <svg viewBox="0 0 200 200" className="h-48 w-48 sm:h-56 sm:w-56">
+          <defs>
+            <linearGradient id="workpulseGauge" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={gradientStops[tone][0]} />
+              <stop offset="100%" stopColor={gradientStops[tone][1]} />
+            </linearGradient>
+          </defs>
+          <circle cx="100" cy="100" r="58" fill="hsl(var(--royal) / 0.04)" />
           <circle
             cx="100"
             cy="100"
@@ -63,18 +72,19 @@ export function RiskGauge({
             cy="100"
             r={RADIUS}
             fill="none"
-            stroke={stroke[tone]}
+            stroke="url(#workpulseGauge)"
             strokeWidth="12"
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
             strokeDashoffset={CIRCUMFERENCE * (1 - display)}
             transform="rotate(-90 100 100)"
+            style={{ filter: "drop-shadow(0 5px 8px hsl(var(--royal) / 0.22))" }}
           />
           <circle cx={markerX} cy={markerY} r="5" fill="hsl(var(--foreground))" />
           <circle cx={markerX} cy={markerY} r="9" fill="hsl(var(--foreground))" opacity="0.14" />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center pt-2">
-          <span className="num text-4xl font-bold tracking-tight sm:text-5xl">
+          <span className="num text-gradient text-gradient-indigo text-4xl font-extrabold tracking-tight sm:text-5xl">
             {(display * 100).toFixed(1)}%
           </span>
           <span className="mt-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
@@ -87,7 +97,7 @@ export function RiskGauge({
         <Badge tone={probability >= threshold ? "high" : "low"}>
           {probability >= threshold ? "High risk" : "Low risk"}
         </Badge>
-        <span className="num rounded-full bg-card-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
+        <span className="num glass-panel rounded-full px-3 py-1 text-[11px] font-semibold text-muted-foreground">
           threshold {(threshold * 100).toFixed(0)}%
         </span>
       </div>

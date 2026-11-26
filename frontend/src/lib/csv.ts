@@ -35,6 +35,10 @@ export function parseCsv(file: File): Promise<Employee[]> {
   });
 }
 
+/**
+ * CSV uploads stay in the model's raw numeric domains — Education 1–5 and
+ * DistanceFromHome 1–29 — so the friendly UI mapping is never applied to files.
+ */
 export function coerceRows(rows: Employee[], fields: SchemaField[]): Employee[] {
   const integerFields = new Set(
     fields.filter((field) => field.type === "integer").map((field) => field.name),

@@ -137,3 +137,26 @@ def test_login_is_rate_limited():
             for _ in range(6)
         ]
         assert statuses == [401, 401, 401, 401, 401, 429]
+
+
+def test_cors_preflight_allows_localhost_dev_ports():
+    with TestClient(app) as client:
+        origins = (
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5174",
+            "http://localhost:5175",
+        )
+        for origin in origins:
+            response = client.options(
+                "/api/auth/signup",
+                headers={
+                    "Origin": origin,
+                    "Access-Control-Request-Method": "POST",
+                    "Access-Control-Request-Headers": "content-type",
+                },
+            )
+            assert response.status_code == 200, (origin, response.text)
+            assert response.headers["access-control-allow-origin"] == origin
+            assert response.headers["access-control-allow-credentials"] == "true"

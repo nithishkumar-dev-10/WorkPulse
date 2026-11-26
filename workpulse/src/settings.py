@@ -32,6 +32,10 @@ def _bool_env(name: str, default: bool) -> bool:
 class Settings:
     database_url: str | None = os.getenv("DATABASE_URL") or None
     frontend_origin: str = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+    # Vite falls back to 5174, 5175, ... when 5173 is busy. Allow any localhost dev port.
+    cors_origin_regex: str = os.getenv(
+        "CORS_ORIGIN_REGEX", r"http://(localhost|127\.0\.0\.1):\d+"
+    )
     jwt_secret: str | None = os.getenv("JWT_SECRET") or None
     jwt_algorithm: str = os.getenv("JWT_ALGORITHM", "HS256")
     access_token_expire_minutes: int = _int_env("ACCESS_TOKEN_EXPIRE_MINUTES", 20)

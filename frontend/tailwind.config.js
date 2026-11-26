@@ -18,6 +18,14 @@ export default {
           foreground: "hsl(var(--accent-foreground))",
         },
         ring: "hsl(var(--ring))",
+        indigo: "hsl(var(--indigo))",
+        "indigo-soft": "hsl(var(--indigo-soft))",
+        royal: "hsl(var(--royal))",
+        "royal-soft": "hsl(var(--royal-soft))",
+        teal: "hsl(var(--teal))",
+        "teal-soft": "hsl(var(--teal-soft))",
+        cyan: "hsl(var(--cyan))",
+        "cyan-soft": "hsl(var(--cyan-soft))",
         risk: {
           low: "hsl(var(--risk-low))",
           lowSoft: "hsl(var(--risk-low-soft))",
@@ -39,6 +47,8 @@ export default {
       boxShadow: {
         soft: "0 1px 2px hsl(var(--shadow) / 0.04), 0 8px 24px hsl(var(--shadow) / 0.06)",
         lift: "0 2px 4px hsl(var(--shadow) / 0.05), 0 18px 40px hsl(var(--shadow) / 0.10)",
+        card: "0 1px 2px hsl(var(--shadow) / 0.04), 0 16px 38px -20px hsl(var(--shadow) / 0.24), inset 0 1px 0 hsl(0 0% 100% / 0.9)",
+        float: "0 2px 4px hsl(var(--shadow) / 0.05), 0 26px 52px -24px hsl(var(--royal) / 0.34), 0 8px 20px -12px hsl(var(--shadow) / 0.14), inset 0 1px 0 hsl(0 0% 100% / 1)",
       },
       keyframes: {
         shimmer: {

@@ -27,7 +27,7 @@
 &nbsp;
 <img src="https://img.shields.io/badge/ROC--AUC-0.7963-10b981?style=flat-square&labelColor=0f172a" />
 &nbsp;
-<img src="https://img.shields.io/badge/Winner-XGBoost-f97316?style=flat-square&labelColor=0f172a" />
+<img src="https://img.shields.io/badge/Selected-XGBoost-f97316?style=flat-square&labelColor=0f172a" />
 &nbsp;
 <img src="https://img.shields.io/badge/Models-3%20Compared-ec4899?style=flat-square&labelColor=0f172a" />
 
@@ -100,6 +100,7 @@ XGBoost<br/>
 
 - [Problem Statement](#-problem-statement)
 - [Project Structure](#-project-structure)
+- [Full-Stack Architecture](#full-stack-architecture)
 - [ML Pipeline Overview](#-ml-pipeline-overview)
 - [Feature Engineering](#-feature-engineering)
 - [Model Results](#-model-results)
@@ -107,9 +108,11 @@ XGBoost<br/>
 - [Why XGBoost Won](#-why-xgboost-won)
 - [Visualizations](#-visualizations)
 - [Quickstart](#-quickstart)
+- [Recent Fixes & Hardening](#recent-fixes--hardening)
 - [Configuration](#️-configuration)
 - [Artifacts](#-artifacts)
 - [Dataset](#-dataset)
+- [Ethics, Privacy & Responsible AI](#ethics-privacy--responsible-ai)
 
 ---
 
@@ -152,48 +155,100 @@ This project addresses that challenge by building a **machine learning-based emp
 ```
 WorkPulse/
 │
-├── 📂 config/
-│   ├── config.yaml              # Pipeline mode, paths, split settings, SMOTE config
-│   ├── features.yaml            # Numerical, categorical, ordinal, engineered features
-│   └── hyperparameters.yaml     # GridSearch / RandomSearch param grids per model
+├── 📂 frontend/                         # React 18 + TypeScript + Vite dashboard
+│   ├── src/
+│   │   ├── api/                         # client.ts, auth.ts
+│   │   ├── auth/                        # AuthProvider + protected routes
+│   │   ├── components/                  # AppShell, OfflineState, UI primitives
+│   │   ├── features/predict/            # FieldRenderer, RiskGauge, FactorChart, compare
+│   │   ├── lib/                         # csv, history, risk, modelInputs, utils
+│   │   ├── pages/                       # Predict, Batch, History, About, Login, Signup
+│   │   ├── types/api.ts                 # Shared API contracts
+│   │   ├── index.css                    # Glass/accent design layer
+│   │   └── main.tsx
+│   ├── public/examples/employee.json    # Sample used by "Load typical employee"
+│   ├── package.json                     # dev / build / lint / typecheck
+│   └── vite.config.ts
 │
-├── 📂 src/
-│   ├── config_loader.py         # YAML config loader
-│   ├── preprocessing.py         # Cleaning, encoding, outlier handling, train/test split
-│   ├── feature_engineering.py   # 10 custom engineered features
-│   ├── train.py                 # SMOTE + model training + hyperparameter tuning
-│   ├── metrics.py               # Accuracy, F1-macro, Precision, Recall, ROC-AUC, FPR, FNR
-│   └── plots.py                 # All figure generation (ROC, confusion matrix, SHAP, etc.)
-│
-├── 📂 notebooks/
-│   ├── eda.ipynb                          # Exploratory Data Analysis
-│   ├── preprocessing_and_feat_eng_exp.ipynb  # Feature experimentation
-│   └── training_pipeline_exp.ipynb        # Model training experiments
-│
-├── 📂 data/
-│   ├── raw/                     # IBM HR Analytics CSV
-│   ├── processed/               # Cleaned + encoded data
-│   └── splits/                  # train.csv / test.csv
-│
-├── 📂 artifacts/
-│   ├── preprocessor.pkl         # Fitted scaler + encoder
-│   ├── feature_columns.pkl      # Final feature list
-│   └── models/
-│       ├── logistic_regression.pkl
-│       ├── random_forest.pkl
-│       └── xgboost.pkl
-│
-├── 📂 reports/
-│   ├── summary.md               # Model comparison + business insights
-│   ├── figures/                 # All plots (ROC, confusion matrix, SHAP, etc.)
-│   └── metrics/
-│       ├── metrics.csv          # Per-model evaluation scores
-│       ├── comparison.csv       # Side-by-side model comparison
-│       └── misclassification.csv
-│
-├── main.py                      # CLI entrypoint
-└── README.md
+└── 📂 workpulse/                        # FastAPI service + ML pipeline
+    ├── config/
+    │   ├── config.yaml                  # Pipeline mode, paths, split settings, SMOTE
+    │   ├── features.yaml                # Numerical, categorical, ordinal, engineered
+    │   └── hyperparameters.yaml         # GridSearch / RandomSearch param grids
+    │
+    ├── src/
+    │   ├── config_loader.py             # YAML config loader
+    │   ├── preprocessing.py             # Cleaning, encoding, split
+    │   ├── feature_engineering.py       # 11 custom engineered features
+    │   ├── train.py                     # SMOTE + training + tuning
+    │   ├── metrics.py                   # Accuracy, F1-macro, ROC-AUC, FPR, FNR
+    │   ├── plots.py                     # ROC, confusion matrix, SHAP figures
+    │   ├── schemas.py                   # 30-field Employee validation + /schema
+    │   ├── predict.py                   # Artifact loading + top SHAP factors
+    │   ├── auth.py                      # Argon2, JWT cookies, rate-limited auth
+    │   ├── rate_limit.py                # Lightweight request limiter
+    │   ├── database.py                  # SQLAlchemy engine (Neon SSL + pre-ping)
+    │   └── settings.py                  # Env-driven config, no secret fallbacks
+    │
+    ├── api.py                           # /health /models /schema /predict /explain
+    ├── examples/employee.json           # Canonical sample payload
+    ├── notebooks/                       # EDA + training experiments
+    ├── data/{raw,processed,splits}/     # IBM HR dataset and derived splits
+    ├── artifacts/                       # Preprocessor, columns, 3 models + SHAP
+    ├── reports/                         # summary.md, figures/, metrics/
+    ├── tests/                           # 20 API + auth tests
+    ├── main.py                          # CLI entrypoint
+    ├── train.py                         # Artifact regeneration
+    └── Readme.md
 ```
+
+---
+
+## Full-Stack Architecture
+
+WorkPulse is a **schema-driven full-stack application**. The browser never re-implements the model; it renders forms from API metadata and sends the exact numeric records the trained artifacts expect.
+
+```text
+ React 18 + TypeScript + Vite (frontend/)
+   ├─ AuthProvider       → /api/auth/me + /api/auth/refresh (httpOnly cookies)
+   ├─ React Query        → /schema, /models, /health
+   ├─ Predict page       → /predict, /explain, model comparison
+   ├─ Batch page         → CSV parse → /predict/batch (≤ 500 rows)
+   └─ History page       → browser localStorage only
+                │ JSON over HTTP(S), same API contract as the tests
+                ▼
+ FastAPI (workpulse/api.py)
+   ├─ Public:    GET /health · /models · /schema
+   ├─ Protected: POST /predict · /predict/batch · /explain
+   └─ Auth:      POST /api/auth/{signup,login,logout,refresh} · GET /me
+                ▼
+ Pydantic Employee schema (30 fields, strict ranges)
+                ▼
+ predict.py → preprocessor.pkl + selected model.pkl → probability/threshold
+                ▼
+ SHAP explainer → top 5 local factors (when ENABLE_EXPLAIN=true)
+
+ Persistence split:
+   • PostgreSQL / Neon → users + password hashes only
+   • Browser localStorage → assessment history only
+   • No employee profiles are written to the API database
+```
+
+| Layer | Responsibility | Key technology |
+|-------|----------------|----------------|
+| UI shell | Responsive dashboard, protected routes, session bootstrap | React Router, React Query, Tailwind |
+| Form engine | Renders 30 schema fields with sliders, switches, dropdowns and mapped inputs | React Hook Form + Zod resolver |
+| Explainability UI | Risk gauge, factor bars and side-by-side model compare | Recharts, Framer Motion |
+| API | Validation, auth dependency, prediction and explanation endpoints | FastAPI, Pydantic v2 |
+| Security | Password hashing, token cookies, CORS allowlist, rate limits | argon2-cffi, PyJWT, SQLAlchemy |
+| ML runtime | Artifact loading, feature alignment, thresholding, SHAP | scikit-learn, XGBoost, shap |
+
+**Important design decisions**
+
+- `/schema` is the single source of truth: field labels, groups, UI hints, ranges and defaults drive both the single-employee form and the CSV template.
+- The form keeps values in the **model domain**. The Education dropdown shows degree names but emits `1–5`; the commute input shows km but emits `DistanceFromHome` `1–29`. Batch CSV remains strictly numeric.
+- Authentication is required for scoring, but metadata and health checks stay public so the UI can render a useful signed-out state.
+- Predictions are advisory. The API returns a calibrated-style probability, the model threshold and optional local factors—never a final HR decision.
 
 ---
 
@@ -210,7 +265,7 @@ Raw CSV (IBM HR Dataset)
          │
          ▼
 ┌───────────────────┐
-│ Feature Engineering│  → 10 custom features derived from domain logic
+│ Feature Engineering│  → 11 custom features derived from domain logic
 │                   │    (IncomePerYear, SatisfactionScore, OverTimeRisk, ...)
 └────────┬──────────┘
          │
@@ -242,11 +297,11 @@ Raw CSV (IBM HR Dataset)
 
 ## 🔧 Feature Engineering
 
-Beyond raw features, **10 domain-specific features** were engineered to improve signal quality:
+Beyond raw features, **11 domain-specific features** were engineered to improve signal quality:
 
 | Feature | Formula / Logic | Business Meaning |
 |---------|----------------|-----------------|
-| `IncomePerYear` | `MonthlyIncome / (TotalWorkingYears + 1)` | Compensation relative to experience |
+| `IncomePerYear` | `MonthlyIncome / (YearsAtCompany + 1)` | Compensation relative to experience |
 | `SatisfactionScore` | Avg of Job, Environment, Relationship Satisfaction | Composite wellbeing signal |
 | `LoyaltyIndex` | `YearsAtCompany / (NumCompaniesWorked + 1)` | Tenure stability vs job-hopping |
 | `WorkloadScore` | `OverTime × JobInvolvement` | Burnout risk proxy |
@@ -274,13 +329,15 @@ Beyond raw features, **10 domain-specific features** were engineered to improve 
 |:------|:--------:|:--------:|:---------:|:------:|:-------:|:---------:|:-------:|
 | Logistic Regression | 0.8537 | 0.7153 | 0.7262 | 0.7062 | 0.801 | 0.72 | Baseline |
 | Random Forest | 0.8333 | 0.7116 | 0.6991 | 0.7285 | 0.794 | 0.36 | Compare |
-| **XGBoost** | **0.8503** | **0.7165** | **0.7205** | **0.7128** | **0.7963** | **0.39** | **✅ Winner** |
+| **XGBoost** | **0.8503** | **0.7165** | **0.7205** | **0.7128** | **0.7963** | **0.39** | **✅ Selected** |
 
 </div>
 
 > **Primary Metric: F1-macro** — chosen because the dataset has class imbalance.  
 > Unlike accuracy, F1-macro penalises models that ignore the minority class.  
 > **ROC-AUC** was used as a tiebreaker for ranking quality across thresholds.
+> **Selection Rationale:** Macro-F1 was the primary metric and ROC-AUC the tiebreaker; Logistic Regression had higher accuracy (0.8537 vs 0.8503) and ROC-AUC (0.801 vs 0.7963).  
+> XGBoost was still selected for the best macro-F1 (0.7165).
 
 ---
 
@@ -294,7 +351,7 @@ Understanding *where* models fail is as important as overall accuracy.
 |:------|:---:|:---:|:--------------|
 | Logistic Regression | 0.0769 | **0.5106** | Misses at-risk employees |
 | Random Forest | 0.1174 | **0.4255** | Misses at-risk employees |
-| **XGBoost** | **0.0850** | **0.4894** | **Best FPR + FNR balance** |
+| **XGBoost** | **0.0850** | **0.4894** | **Balanced FPR/FNR trade-off** |
 
 </div>
 
@@ -306,7 +363,7 @@ FNR (False Negative Rate) = Employees who left predicted as No Attrition
                           → Missed at-risk employees — costly, unplanned turnover
 ```
 
-**Business Insight:** All models struggle most with FNR (missing employees who actually leave). XGBoost achieves the best balance — lowest FPR while keeping FNR competitive with Random Forest.
+**Business Insight:** All models struggle with FNR; Logistic Regression has the lowest FPR, Random Forest the lowest FNR, and XGBoost sits between them with the best macro-F1.
 
 ---
 
@@ -322,8 +379,12 @@ Random Forest        →  Handles feature interactions well. But sensitive to
                          more wasted retention interventions on low-risk employees.
 
 XGBoost ✅           →  Gradient boosting on structured data. Handles imbalance
-                         well when tuned. Best F1-macro (0.7165) + lowest FPR.
+                         well when tuned. Best macro-F1 (0.7165), with accuracy
+                         and ROC-AUC within 0.01-0.02 of Logistic Regression.
                          Custom engineered features gave it more signal to learn from.
+                         The gap between models is small; XGBoost was selected
+                         for non-linear interaction handling and native SHAP
+                         TreeExplainer support.
 ```
 
 **Hyperparameter search used GridSearchCV (5-fold, scoring=f1_macro):**
@@ -402,7 +463,7 @@ Feature impact on predictions
 ```bash
 git clone https://github.com/yourusername/WorkPulse.git
 cd WorkPulse/workpulse
-python -m venv venv
+python3 -m venv venv
 venv/bin/pip install -r requirements.txt
 cp .env.example .env   # set DATABASE_URL, JWT_SECRET and FRONTEND_ORIGIN
 ```
@@ -429,12 +490,12 @@ data/raw/WA_Fn-UseC_-HR-Employee-Attrition.csv
 
 ```bash
 # Full pipeline (preprocess → features → train → evaluate)
-python main.py --stage pipeline
+venv/bin/python main.py --stage pipeline
 
 # Or run individual stages
-python main.py --stage preprocess
-python main.py --stage features
-python main.py --stage train
+venv/bin/python main.py --stage preprocess
+venv/bin/python main.py --stage features
+venv/bin/python main.py --stage train
 ```
 
 ### 4. View Results
@@ -449,6 +510,67 @@ cat reports/metrics/metrics.csv
 # All figures
 open reports/figures/
 ```
+
+### 5. Run the Full Stack
+
+```bash
+# Terminal 1 — API (from workpulse/)
+venv/bin/uvicorn api:app --reload --port 8000
+
+# Terminal 2 — dashboard (from frontend/)
+cd ../frontend
+npm install
+cp .env.example .env      # VITE_API_URL=http://localhost:8000 for local dev
+npm run dev
+```
+
+Open `http://localhost:5173`, sign up, then use **Predict**, **Batch**, **History** and **About**. For a production frontend build:
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
+
+Backend verification:
+
+```bash
+venv/bin/python -m pytest -q   # 20 passed
+```
+
+---
+
+## Recent Fixes & Hardening
+
+The latest pass improved reliability and clarity **without changing the API contract or any `artifacts/*.pkl` file**.
+
+### Authentication & infrastructure
+
+- Passwords are hashed with **argon2-cffi**; plaintext passwords are never stored or logged.
+- JWTs use **HS256** with typed access/refresh tokens (20-minute access, 7-day refresh) delivered as `httpOnly`, `Secure`-in-production, `SameSite=lax` cookies.
+- `/api/auth/signup` and `/api/auth/login` are rate-limited to **5 requests / 60 seconds** (HTTP 429 + `Retry-After`).
+- Database settings use `sslmode=require` with SQLAlchemy pre-ping; there are no hardcoded secret fallbacks.
+- CORS is restricted to the documented localhost dev ports plus `FRONTEND_ORIGIN`.
+
+### Frontend correctness
+
+- The form is rendered from `/schema`, so ranges and defaults stay aligned with Pydantic validation.
+- **Education** is now a degree dropdown (`High School` → `Doctorate`) that emits the exact IBM HR tier `1–5` and displays `Model Tier: n / 5`.
+- **DistanceFromHome** accepts real-world km with presets and shows `Normalized model scale: n / 29`; a documented helper maps km into the trained `1–29` domain. Stored/POSTed values remain integers.
+- Batch CSV documents and preserves raw numeric `Education 1–5` and `DistanceFromHome 1–29`; the upload cap is explicit at 500 rows.
+- The Batch page no longer collapses into a generic **Service unavailable** card on a transient metadata failure: `/schema` and `/models` errors are surfaced with a working retry, and queries refetch on mount.
+- User-facing pages no longer expose connection URLs, startup commands, `VITE_API_URL`, `ENABLE_EXPLAIN`, or a "Connected" status pill.
+
+### Validation performed
+
+| Check | Result |
+|-------|--------|
+| `frontend`: `npm run typecheck` | pass |
+| `frontend`: `npm run lint` | pass |
+| `frontend`: `npm run build` | pass (pre-existing chunk-size warning only) |
+| `workpulse`: `venv/bin/python -m pytest -q` | 20 passed |
+
+`/predict`, `/predict/batch`, `/explain`, comparison and history payloads still carry the original model-domain values.
 
 ---
 
@@ -488,6 +610,8 @@ Pre-trained artifacts are saved for inference without retraining:
 | Logistic Regression | `artifacts/models/logistic_regression.pkl` | Baseline model |
 | Random Forest | `artifacts/models/random_forest.pkl` | Ensemble model |
 | **XGBoost** | `artifacts/models/xgboost.pkl` | **Selected production model** |
+| SHAP explainers | `artifacts/models/*_shap_explainer.pkl` | Top-factor attribution for `/explain` |
+| Thresholds | `artifacts/thresholds.json` | Per-model decision thresholds |
 
 **Using the saved model for prediction:**
 
@@ -527,20 +651,53 @@ probability = model.predict_proba(X_processed)[:, 1]
 
 ---
 
+## Ethics, Privacy & Responsible AI
+
+WorkPulse scores attrition **risk**, not people. It is intended as decision support for retention conversations, never as an automated basis for hiring, firing, pay, promotion or discipline.
+
+### Privacy & data handling
+
+- Employee profiles posted to `/predict` are validated and used for inference only; they are **not persisted** by the API.
+- The `users` table stores account identity and argon2 password hashes only.
+- Browser history lives in `localStorage` on the user's device and can be cleared from the History page.
+- Tokens are delivered in `httpOnly` cookies; frontend JavaScript never reads them. Secrets remain server-side.
+- In production: use HTTPS, set `AUTH_COOKIE_SECURE=true`, rotate `JWT_SECRET`, and keep a restricted CORS allowlist.
+
+### Fairness & limitations
+
+- The IBM HR Analytics dataset has 1,470 rows and ~16% attrition. It is historical/synthetic and may encode biased patterns; it is not representative of every workforce.
+- The schema includes sensitive attributes such as `Gender` and `MaritalStatus`. They can influence predictions, so subgroup FPR/FNR should be reviewed before operational use.
+- Selected-model FNR is **0.4894**: roughly half of actual leavers are missed. Low-risk results must be treated as uncertain and human-reviewed.
+- SHAP factors are local, correlational explanations of model behavior—not causal proof of why someone wants to leave.
+
+### Responsible use checklist
+
+- Keep a human in the loop; use scores to start supportive conversations, not punitive action.
+- Never present the probability as certainty or as a standalone performance rating.
+- Monitor drift and revalidate metrics on your own population before deployment.
+- Minimize collected fields and define retention, consent and access policies for real employee data.
+- Record model version, threshold (`0.39` for XGBoost) and explanation status in any report.
+
+---
+
 ## 🧱 Tech Stack
 
 <div align="center">
 
 | Layer | Tool |
 |-------|------|
-| Language | Python 3.10+ |
-| ML Framework | scikit-learn, XGBoost |
-| Imbalance Handling | imbalanced-learn (SMOTE) |
+| Language / API | Python 3.10+, FastAPI, Pydantic v2, Uvicorn |
+| Frontend | React 18, TypeScript, Vite, Tailwind, Radix UI |
+| State & forms | React Query, React Hook Form, Zod |
+| Auth & storage | argon2-cffi, PyJWT, SQLAlchemy, PostgreSQL / Neon |
+| ML framework | scikit-learn, XGBoost |
+| Imbalance handling | imbalanced-learn (SMOTE) |
 | Explainability | SHAP |
 | Data | pandas, NumPy |
-| Visualization | matplotlib, seaborn |
-| Config | PyYAML |
-| Serialization | pickle |
+| Visualization | matplotlib, seaborn, Recharts |
+| Config | PyYAML, python-dotenv |
+| Testing | pytest, httpx, ESLint, TypeScript |
+| Serialization | pickle artifacts |
 
 </div>
 

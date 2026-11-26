@@ -4,7 +4,7 @@ import type {
   SignupRequest,
   User,
 } from "@/types/api";
-import { API_URL, apiError, apiRequest, refreshSession } from "./client";
+import { API_URL, apiError, apiRequest, networkErrorMessage, refreshSession } from "./client";
 
 async function authFetch<T>(path: string, init: RequestInit): Promise<T> {
   let response: Response;
@@ -15,7 +15,7 @@ async function authFetch<T>(path: string, init: RequestInit): Promise<T> {
       headers: { "Content-Type": "application/json" },
     });
   } catch {
-    throw new Error(`Cannot reach the API at ${API_URL}. Start the backend first.`);
+    throw new Error(await networkErrorMessage());
   }
 
   if (!response.ok) throw new Error(await apiError(response));
