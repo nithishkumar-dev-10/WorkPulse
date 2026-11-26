@@ -14,10 +14,9 @@ __pycache__/
 data/processed/
 data/splits/
 
-artifacts/
+
 
 logs/
 *.log
 
-*.pkl
-*.joblib
+

@@ -1,0 +1,5 @@
+{
+  "logistic": 0.72,
+  "random_forest": 0.36,
+  "xgboost": 0.39
+}
