@@ -2,7 +2,7 @@
 
 <br/>
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f2027,50:203a43,100:2c5364&height=200&section=header&text=WorkPulse&fontSize=80&fontColor=ffffff&fontAlignY=38&desc=ML-Based%20Employee%20Attrition%20Prediction%20System&descAlignY=58&descSize=18&descColor=90cdf4&animation=fadeIn" width="100%"/>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f2027,50:203a43,100:2c5364&height=200&section=header&text=WorkPulse&fontSize=80&fontColor=ffffff&fontAlignY=38&desc=Employee%20Attrition%20Risk%20%26%20Explainability%20Platform&descAlignY=58&descSize=18&descColor=90cdf4&animation=fadeIn" width="100%"/>
 
 <br/>
 
@@ -11,12 +11,17 @@
 <td align="center">
 
 ```
-  🧠  Predict · Analyze · Retain  🎯
+  🧠  Predict · Explain · Retain  🎯
 ```
 
 </td>
 </tr>
 </table>
+
+<br/>
+
+<!-- LIVE DEMO -->
+[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-workpulse--2xtk.onrender.com-0ea5e9?style=for-the-badge&labelColor=0f172a)](https://workpulse-2xtk.onrender.com/)
 
 <br/>
 
@@ -27,7 +32,7 @@
 &nbsp;
 <img src="https://img.shields.io/badge/ROC--AUC-0.7963-10b981?style=flat-square&labelColor=0f172a" />
 &nbsp;
-<img src="https://img.shields.io/badge/Winner-XGBoost-f97316?style=flat-square&labelColor=0f172a" />
+<img src="https://img.shields.io/badge/Selected-XGBoost-f97316?style=flat-square&labelColor=0f172a" />
 &nbsp;
 <img src="https://img.shields.io/badge/Models-3%20Compared-ec4899?style=flat-square&labelColor=0f172a" />
 
@@ -35,13 +40,21 @@
 
 <!-- TECH STACK BADGES -->
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Inference%20API-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Dashboard-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+
+<br/>
+
 [![XGBoost](https://img.shields.io/badge/XGBoost-Gradient%20Boosting-FF6600?style=for-the-badge&logo=xgboost&logoColor=white)](https://xgboost.readthedocs.io)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-Pipeline-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech)
 
 <br/>
 
 [![Dataset](https://img.shields.io/badge/📊%20Dataset-IBM%20HR%20Analytics-20BEFF?style=for-the-badge&logo=kaggle&logoColor=white)](https://www.kaggle.com/datasets/pavansubhasht/ibm-hr-analytics-attrition-dataset)
 [![SMOTE](https://img.shields.io/badge/Imbalance-SMOTE%20Applied-22C55E?style=for-the-badge)](https://imbalanced-learn.org)
+[![SHAP](https://img.shields.io/badge/Explainability-SHAP-ef4444?style=for-the-badge)](https://shap.readthedocs.io)
 [![License](https://img.shields.io/badge/License-MIT-a855f7?style=for-the-badge)](LICENSE)
 
 <br/>
@@ -70,9 +83,9 @@ LR · RF · XGBoost<br/>
 </td>
 <td align="center" width="25%" style="padding: 10px">
 <br/>
-<b>✅ Winner</b><br/>
+<b>✅ Selected</b><br/>
 XGBoost<br/>
-<code>F1=0.7165</code>
+<code>F1-macro = 0.7165</code>
 </td>
 </tr>
 </table>
@@ -83,8 +96,14 @@ XGBoost<br/>
 > *improved work-life balance, job dissatisfaction, or personal reasons.*  
 > *HR departments often struggle to identify employees who are at risk of leaving before they resign."*
 >
-> **WorkPulse fixes that** — a tuned ML pipeline trained on structured employee data:  
-> demographics · job role · satisfaction · tenure · workload · compensation
+> **WorkPulse fixes that** — a full-stack ML decision-support platform:  
+> tuned model · explainable predictions · secure auth · batch scoring
+
+<br/>
+
+### 🚀 [**Try the Live Demo →**](https://workpulse-2xtk.onrender.com/)
+
+<sub>If the demo is hosted on a free tier, the first load may take a few seconds while the server wakes up.</sub>
 
 <br/>
 
@@ -99,17 +118,22 @@ XGBoost<br/>
 ## 📋 Table of Contents
 
 - [Problem Statement](#-problem-statement)
+- [Key Features](#-key-features)
+- [Full-Stack Architecture](#-full-stack-architecture)
 - [Project Structure](#-project-structure)
 - [ML Pipeline Overview](#-ml-pipeline-overview)
 - [Feature Engineering](#-feature-engineering)
 - [Model Results](#-model-results)
 - [Misclassification Analysis](#-misclassification-analysis)
-- [Why XGBoost Won](#-why-xgboost-won)
+- [Why XGBoost Was Selected](#-why-xgboost-was-selected)
+- [Security & Hardening](#-security--hardening)
+- [Ethics, Privacy & Responsible AI](#-ethics-privacy--responsible-ai)
 - [Visualizations](#-visualizations)
 - [Quickstart](#-quickstart)
 - [Configuration](#️-configuration)
 - [Artifacts](#-artifacts)
 - [Dataset](#-dataset)
+- [Tech Stack](#-tech-stack)
 
 ---
 
@@ -119,7 +143,7 @@ Employee attrition is a major challenge for organizations. Employees may leave f
 
 As a result, HR departments often struggle to identify employees who are at risk of leaving before they resign.
 
-This project addresses that challenge by building a **machine learning-based employee attrition prediction system**. By analyzing an employee's demographic, job-related, and workplace attributes, the model predicts whether an employee is likely to leave the organization, enabling HR teams to take proactive retention measures.
+This project addresses that challenge with a **machine learning-based attrition risk platform**. By analyzing an employee's demographic, job-related, and workplace attributes, the model estimates whether an employee is likely to leave, and **explains why**, enabling HR teams to take proactive retention measures.
 
 <table>
 <tr>
@@ -136,14 +160,55 @@ This project addresses that challenge by building a **machine learning-based emp
 
 ### The Solution
 - Binary classifier → **Attrition (Yes / No)**
-- Compare **3 ML models** head-to-head
-- Select winner by **F1-macro + ROC-AUC** (handles class imbalance)
-- Full pipeline: EDA → Engineering → Tuning → Evaluation
-- Surfaces at-risk employees so HR can act **proactively**
+- Compare **3 tuned ML models** head-to-head
+- Select by **F1-macro**, with **ROC-AUC** as tiebreaker (handles class imbalance)
+- Full pipeline: EDA → Engineering → Tuning → Evaluation → Deployment
+- Real-time **SHAP explanations** so every prediction is interpretable
 
 </td>
 </tr>
 </table>
+
+---
+
+## ✨ Key Features
+
+| | Feature | Details |
+|:-:|---------|---------|
+| 🧍 | **Single-profile scoring** | 30-field employee form with human-readable Education and commute inputs mapped to exact model domains |
+| 📄 | **Batch CSV scoring** | Upload up to **500 rows** and score them in one request |
+| 🔍 | **SHAP explainability** | Real-time **top-5** local explanations for each prediction |
+| ⚖️ | **Model comparison** | Side-by-side view of Logistic Regression, Random Forest and XGBoost |
+| 🔐 | **Secure authentication** | Argon2 password hashing, HS256 JWT refresh tokens in `httpOnly` cookies |
+| 🛡️ | **Rate limiting** | Sliding-window limiter on sensitive endpoints |
+| 🕶️ | **Stateless privacy** | Scored employee data is processed in memory and **never stored** |
+| 🕘 | **Browser-side history** | Past results kept locally in the browser, not on the server |
+
+---
+
+## 🏗️ Full-Stack Architecture
+
+```
+┌──────────────────────┐        ┌──────────────────────┐
+│  React 18 Dashboard  │  HTTP  │   FastAPI Backend    │
+│  (TypeScript)        │ ─────▶ │   api.py + routers   │
+│  forms · CSV · SHAP  │ ◀───── │   auth / predict     │
+└──────────────────────┘  JSON  └──────────┬───────────┘
+                                           │
+                     ┌─────────────────────┼─────────────────────┐
+                     ▼                     ▼                     ▼
+          ┌────────────────────┐ ┌────────────────────┐ ┌────────────────────┐
+          │  Pydantic Schemas  │ │   ML Artifacts     │ │ PostgreSQL (Neon)  │
+          │  input validation  │ │  preprocessor +    │ │  users table only  │
+          │                    │ │  XGBoost + SHAP    │ │  (no employee data)│
+          └────────────────────┘ └────────────────────┘ └────────────────────┘
+```
+
+**Request flow:** React dashboard → FastAPI → Pydantic validation → preprocessing + feature engineering → XGBoost (threshold 0.39) → SHAP top-5 → JSON response.
+
+**Persistence boundary:** PostgreSQL stores **user accounts only**. Employee profiles and CSV rows are scored statelessly in memory.
+
+**Auth endpoints** (under `/api/auth`): `signup`, `login`, `logout`, `refresh`, `me`. Prediction endpoints require a logged-in session.
 
 ---
 
@@ -160,10 +225,19 @@ WorkPulse/
 ├── 📂 src/
 │   ├── config_loader.py         # YAML config loader
 │   ├── preprocessing.py         # Cleaning, encoding, outlier handling, train/test split
-│   ├── feature_engineering.py   # 10 custom engineered features
+│   ├── feature_engineering.py   # 11 custom engineered features
 │   ├── train.py                 # SMOTE + model training + hyperparameter tuning
 │   ├── metrics.py               # Accuracy, F1-macro, Precision, Recall, ROC-AUC, FPR, FNR
 │   └── plots.py                 # All figure generation (ROC, confusion matrix, SHAP, etc.)
+│
+├── 📂 workpulse/
+│   ├── api.py                   # FastAPI app entrypoint
+│   ├── auth/                    # Signup, login, refresh, cookies, rate limiting
+│   ├── schema/                  # Pydantic request / response models
+│   ├── predict/                 # Single + batch inference, SHAP explanations
+│   ├── examples/                # Sample payloads and CSVs
+│   ├── tests/                   # Backend test suite (pytest)
+│   └── frontend/                # React 18 + TypeScript dashboard
 │
 ├── 📂 notebooks/
 │   ├── eda.ipynb                          # Exploratory Data Analysis
@@ -209,40 +283,40 @@ Raw CSV (IBM HR Dataset)
 └────────┬──────────┘
          │
          ▼
-┌───────────────────┐
-│ Feature Engineering│  → 10 custom features derived from domain logic
-│                   │    (IncomePerYear, SatisfactionScore, OverTimeRisk, ...)
-└────────┬──────────┘
+┌────────────────────┐
+│ Feature Engineering│  → 11 custom features derived from domain logic
+│                    │    (IncomePerYear, SatisfactionScore, OverTimeRisk, ...)
+└────────┬───────────┘
          │
          ▼
 ┌───────────────────┐
-│    SMOTE          │  → Synthetic Minority Oversampling on training set only
+│       SMOTE       │  → Synthetic Minority Oversampling on training set only
 │  (Imbalance Fix)  │    (applied post-split to prevent data leakage)
 └────────┬──────────┘
          │
          ▼
-┌───────────────────────────────────────────────┐
-│           Model Training + Tuning             │
-│  Logistic Regression  │  Random Forest  │  XGBoost  │
-│  GridSearchCV (5-fold)│  RandomSearchCV │  GridSearchCV  │
-│  scoring = f1_macro   │  n_iter=30      │  scoring = f1_macro │
-└────────────────────────┬──────────────────────┘
-                         │
-                         ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                     Model Training + Tuning                      │
+│  Logistic Regression   │   Random Forest    │      XGBoost       │
+│  GridSearchCV (5-fold) │  RandomSearchCV    │  GridSearchCV      │
+│  scoring = f1_macro    │  n_iter=30         │  scoring = f1_macro│
+└───────────────────────────────┬──────────────────────────────────┘
+                                │
+                                ▼
 ┌───────────────────┐
-│   Evaluation      │  → Accuracy, F1-macro, Precision, Recall,
+│    Evaluation     │  → Accuracy, F1-macro, Precision, Recall,
 │                   │    ROC-AUC, FPR, FNR, Threshold
 └────────┬──────────┘
          │
          ▼
-  📊 Reports + Figures + Model Selection
+  📊 Reports + Figures + Model Selection → 🚀 FastAPI + React deployment
 ```
 
 ---
 
 ## 🔧 Feature Engineering
 
-Beyond raw features, **10 domain-specific features** were engineered to improve signal quality:
+Beyond raw features, **11 domain-specific features** were engineered to improve signal quality:
 
 | Feature | Formula / Logic | Business Meaning |
 |---------|----------------|-----------------|
@@ -273,14 +347,16 @@ Beyond raw features, **10 domain-specific features** were engineered to improve 
 | Model | Accuracy | F1-macro | Precision | Recall | ROC-AUC | Threshold | Verdict |
 |:------|:--------:|:--------:|:---------:|:------:|:-------:|:---------:|:-------:|
 | Logistic Regression | 0.8537 | 0.7153 | 0.7262 | 0.7062 | 0.801 | 0.72 | Baseline |
-| Random Forest | 0.8333 | 0.7116 | 0.6991 | 0.7285 | 0.794 | 0.36 | Compare |
-| **XGBoost** | **0.8503** | **0.7165** | **0.7205** | **0.7128** | **0.7963** | **0.39** | **✅ Winner** |
+| Random Forest | 0.8333 | 0.7116 | 0.6991 | 0.7285 | 0.794 | 0.36 | Compared |
+| **XGBoost** | **0.8503** | **0.7165** | **0.7205** | **0.7128** | **0.7963** | **0.39** | **✅ Selected** |
 
 </div>
 
 > **Primary Metric: F1-macro** — chosen because the dataset has class imbalance.  
 > Unlike accuracy, F1-macro penalises models that ignore the minority class.  
 > **ROC-AUC** was used as a tiebreaker for ranking quality across thresholds.
+
+> **Selection Rationale:** The three models perform very closely. Logistic Regression has slightly higher accuracy and ROC-AUC, while XGBoost has the best macro-F1 and was chosen for its non-linear interaction handling and native SHAP `TreeExplainer` support.
 
 ---
 
@@ -292,9 +368,9 @@ Understanding *where* models fail is as important as overall accuracy.
 
 | Model | FPR | FNR | Dominant Error |
 |:------|:---:|:---:|:--------------|
-| Logistic Regression | 0.0769 | **0.5106** | Misses at-risk employees |
+| Logistic Regression | **0.0769** | 0.5106 | Misses at-risk employees |
 | Random Forest | 0.1174 | **0.4255** | Misses at-risk employees |
-| **XGBoost** | **0.0850** | **0.4894** | **Best FPR + FNR balance** |
+| **XGBoost** | 0.0850 | 0.4894 | **Balanced FPR / FNR trade-off** |
 
 </div>
 
@@ -306,25 +382,28 @@ FNR (False Negative Rate) = Employees who left predicted as No Attrition
                           → Missed at-risk employees — costly, unplanned turnover
 ```
 
-**Business Insight:** All models struggle most with FNR (missing employees who actually leave). XGBoost achieves the best balance — lowest FPR while keeping FNR competitive with Random Forest.
+**Business Insight:** All models struggle most with FNR (missing employees who actually leave). Logistic Regression has the lowest FPR, Random Forest the lowest FNR, and XGBoost sits between them with the best macro-F1.
 
 ---
 
-## 🏆 Why XGBoost Won
+## 🏆 Why XGBoost Was Selected
 
 ```
 Logistic Regression  →  Linear decision boundary. Cannot capture non-linear
                          attrition patterns (e.g., interaction between OverTime +
-                         low satisfaction + low income). Good baseline, not enough.
+                         low satisfaction + low income). Strong baseline.
 
 Random Forest        →  Handles feature interactions well. But sensitive to
                          depth and sampling parameters. Higher FPR (0.1174) means
                          more wasted retention interventions on low-risk employees.
 
 XGBoost ✅           →  Gradient boosting on structured data. Handles imbalance
-                         well when tuned. Best F1-macro (0.7165) + lowest FPR.
+                         well when tuned. Best F1-macro (0.7165), with accuracy and
+                         ROC-AUC within 0.01-0.02 of Logistic Regression.
                          Custom engineered features gave it more signal to learn from.
 ```
+
+> The gap between models is small; XGBoost was selected for non-linear interaction handling and native SHAP `TreeExplainer` support.
 
 **Hyperparameter search used GridSearchCV (5-fold, scoring=f1_macro):**
 
@@ -337,6 +416,42 @@ colsample_bytree: [0.6, 0.7]
 min_child_weight: [3]
 gamma:            [0, 0.1]
 ```
+
+---
+
+## 🔐 Security & Hardening
+
+| Area | Implementation |
+|------|----------------|
+| **Password storage** | Argon2 hashing |
+| **Sessions** | HS256 JWT access + refresh tokens in `httpOnly` cookies |
+| **Abuse protection** | Sliding-window rate limiting |
+| **Input validation** | Pydantic schemas validate every request |
+| **CORS / secrets** | Origins and secrets loaded from environment variables (`FRONTEND_ORIGIN`, `JWT_SECRET`) |
+| **Database** | Neon PostgreSQL over SSL with connection pre-ping |
+| **Data handling** | Stateless in-memory scoring; no employee records persisted |
+
+**Recent fixes:** human-readable Education / commute mapping to exact model domains, Batch metadata loading and retry fix, and UX cleanup. The backend is covered by **20 tests**, and the frontend passes typecheck, lint and production build.
+
+---
+
+## 🤝 Ethics, Privacy & Responsible AI
+
+WorkPulse is a **decision-support tool, not a decision-maker.** Please read this before using it.
+
+- **Human in the loop:** predictions should inform a conversation with an employee, never trigger hiring, firing, promotion or pay decisions on their own.
+- **Data privacy:** uploaded profiles and CSVs are processed in memory and not stored. Only user accounts are saved.
+- **Sensitive attributes:** the dataset contains attributes such as Age, Gender and MaritalStatus. Review whether they should be used at all in your context, and audit outcomes for bias before any real deployment.
+- **Known limitation (FNR):** the selected model misses roughly **49%** of employees who actually leave (FNR 0.4894). A "low risk" result is **not** a guarantee.
+- **SHAP caveats:** explanations show which features influenced the model, **not causal reasons** why someone leaves.
+- **Dataset scope:** trained on the public, synthetic IBM HR Analytics dataset. It has not been validated on real company data.
+
+**Responsible-use checklist**
+
+- [ ] Used only as one input among many
+- [ ] Employees informed about how their data is used
+- [ ] Outcomes audited for bias across groups
+- [ ] Model retrained and validated on your own data before real use
 
 ---
 
@@ -397,6 +512,8 @@ Feature impact on predictions
 
 ## 🚀 Quickstart
 
+> Just want to see it? Use the **[Live Demo](https://workpulse-2xtk.onrender.com/)**.
+
 ### 1. Clone & Install
 
 ```bash
@@ -450,6 +567,27 @@ cat reports/metrics/metrics.csv
 open reports/figures/
 ```
 
+### 5. Run the API + Dashboard
+
+```bash
+# Backend (from workpulse/)
+venv/bin/uvicorn api:app --reload --port 8000
+
+# Frontend (new terminal, from workpulse/frontend/)
+npm install
+npm run dev
+```
+
+**Verification**
+
+```bash
+# Backend tests
+venv/bin/pytest
+
+# Frontend checks
+npm run typecheck && npm run lint && npm run build
+```
+
 ---
 
 ## 🛠️ Configuration
@@ -474,6 +612,8 @@ smote:
 **`config/features.yaml`** — define which columns are numerical, categorical, ordinal, or engineered.
 
 **`config/hyperparameters.yaml`** — modify param grids for each model without touching source code.
+
+**`.env`** — `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_ORIGIN`.
 
 ---
 
@@ -508,8 +648,8 @@ with open("artifacts/feature_columns.pkl", "rb") as f:
 # Predict on new data
 X_new = pd.DataFrame([...])  # structured employee profile
 X_processed = preprocessor.transform(X_new)[feature_columns]
-prediction = model.predict(X_processed)   # 0 = Stayed, 1 = Left (Attrition)
 probability = model.predict_proba(X_processed)[:, 1]
+prediction = (probability >= 0.39).astype(int)   # 0 = Stayed, 1 = Left (Attrition)
 ```
 
 ---
@@ -533,14 +673,18 @@ probability = model.predict_proba(X_processed)[:, 1]
 
 | Layer | Tool |
 |-------|------|
-| Language | Python 3.10+ |
+| Language | Python 3.10+, TypeScript |
 | ML Framework | scikit-learn, XGBoost |
 | Imbalance Handling | imbalanced-learn (SMOTE) |
 | Explainability | SHAP |
+| Backend | FastAPI, Pydantic, Argon2, JWT |
+| Frontend | React 18, TypeScript |
+| Database | PostgreSQL (Neon) |
 | Data | pandas, NumPy |
 | Visualization | matplotlib, seaborn |
 | Config | PyYAML |
 | Serialization | pickle |
+| Hosting | Render |
 
 </div>
 
@@ -549,7 +693,11 @@ probability = model.predict_proba(X_processed)[:, 1]
 <div align="center">
 
 **Built by [Nithish Kumar S](https://github.com/yourusername)**  
-*SECOND-year CS student · AI Engineer in progress *
+*Second-year CS student · AI Engineer in progress*
+
+<br/>
+
+### 🚀 [Live Demo](https://workpulse-2xtk.onrender.com/)
 
 <br/>
 
