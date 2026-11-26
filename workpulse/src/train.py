@@ -13,7 +13,7 @@ from sklearn.preprocessing import OrdinalEncoder,OneHotEncoder,StandardScaler
 from xgboost import XGBClassifier
 from src.config_loader import PROJECT_ROOT, load_config, load_features, load_hyperparameters
 from src.feature_engineering import engineer_features
-from src.metrics import evaluate_model, save_metrics, save_summary
+from src.metrics import evaluate_model, save_metrics, save_summary, save_thresholds
 from src.plots import plot_boxplots, plot_class_distribution, plot_confusion_matrix, plot_feature_importance, plot_model_comparison, plot_roc_curve, plot_shap_summary
 from src.preprocessing import preprocess_data
 
@@ -219,6 +219,7 @@ def train_all(
             logger.info(f"{display} SHAP explainer saved to {explainer_path}")
 
     metrics_df = save_metrics(all_metrics)
+    save_thresholds(all_metrics)
     plot_model_comparison(metrics_df)
     save_summary(metrics_df)
 

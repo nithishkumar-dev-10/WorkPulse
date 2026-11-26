@@ -401,8 +401,18 @@ Feature impact on predictions
 
 ```bash
 git clone https://github.com/yourusername/WorkPulse.git
-cd WorkPulse
-pip install -r requirements.txt
+cd WorkPulse/workpulse
+python -m venv venv
+venv/bin/pip install -r requirements.txt
+cp .env.example .env   # set DATABASE_URL, JWT_SECRET and FRONTEND_ORIGIN
+```
+
+The API creates the `users` table on startup. Auth endpoints are available under `/api/auth` (signup, login, logout, refresh, me); prediction endpoints require a logged-in session.
+
+Model artifacts are generated, not committed. On a fresh clone, regenerate them first:
+
+```bash
+venv/bin/python train.py
 ```
 
 ### 2. Add Dataset

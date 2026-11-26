@@ -1,4 +1,6 @@
+import json
 import logging
+from functools import lru_cache
 from pathlib import Path
 
 import joblib
@@ -7,10 +9,15 @@ import pandas as pd
 
 from src.config_loader import PROJECT_ROOT, load_config, load_features
 from src.feature_engineering import engineer_features
+from src.schemas import MODEL_NAMES, Employee, UnknownModelError
 
 logger = logging.getLogger(__name__)
 
+# CLI/API uses "logistic"; training saves the explainer under the full model key.
+EXPLAINER_FILE_KEYS = {"logistic": "logistic_regression"}
+
 #loading the model 
+@lru_cache(maxsize=None)
 def load_artifacts(model_name: str = "random_forest"):
     
     cfg = load_config()
@@ -26,11 +33,13 @@ def load_artifacts(model_name: str = "random_forest"):
     return model, preprocessor, feature_columns
 
 #loading the shap which we have defined in the tarin.py
+@lru_cache(maxsize=None)
 def load_shap_explainer(model_name: str = "random_forest"):
     
     cfg = load_config()
     model_path = PROJECT_ROOT / cfg["paths"]["models"][model_name]
-    explainer_path = model_path.parent / f"{model_name}_shap_explainer.pkl"
+    explainer_key = EXPLAINER_FILE_KEYS.get(model_name, model_name)
+    explainer_path = model_path.parent / f"{explainer_key}_shap_explainer.pkl"
 
     if not explainer_path.exists():
         logger.warning(
@@ -39,6 +48,24 @@ def load_shap_explainer(model_name: str = "random_forest"):
         return None
 
     return joblib.load(explainer_path)
+
+
+def load_threshold(model_name: str) -> float:
+    """Load the tuned decision threshold saved next to the artifacts by training."""
+    cfg = load_config()
+    path = PROJECT_ROOT / cfg["paths"]["artifacts"]["thresholds"]
+
+    if not path.exists():
+        logger.warning(f"No thresholds file at {path}; falling back to 0.5.")
+        return 0.5
+
+    with open(path, "r", encoding="utf-8") as f:
+        thresholds = json.load(f)
+
+    if model_name not in thresholds:
+        logger.warning(f"No saved threshold for '{model_name}'; falling back to 0.5.")
+
+    return float(thresholds.get(model_name, 0.5))
 
 #building the shap pipeline , taking the input ,allowing for prediction ,compute shap values ,return the contribution of every features
 def explain_prediction(df: pd.DataFrame, model_name: str = "random_forest") -> pd.DataFrame:
@@ -144,8 +171,9 @@ def predict_from_dataframe(df: pd.DataFrame, model_name: str = "random_forest") 
     # Step 4 — transform using the fitted preprocessor
     X = preprocessor.transform(df_input)
 
+    threshold = load_threshold(model_name)
     probabilities = model.predict_proba(X)[:, 1]
-    predictions = (probabilities >= 0.5).astype(int)
+    predictions = (probabilities >= threshold).astype(int)
 
     result = df.copy()
     result["Prediction"] = np.where(predictions == 1, "Yes", "No")
@@ -153,6 +181,37 @@ def predict_from_dataframe(df: pd.DataFrame, model_name: str = "random_forest") 
 
     return result
 
+
+def predict(model_name: str, employee: dict) -> dict:
+    """Validate one raw employee record and return a JSON-serializable prediction."""
+    if model_name not in MODEL_NAMES:
+        raise UnknownModelError(
+            f"Unknown model '{model_name}'. Available models: {', '.join(MODEL_NAMES)}."
+        )
+
+    validated = Employee.model_validate(employee)
+    df = pd.DataFrame([validated.model_dump()])
+    result = predict_from_dataframe(df, model_name)
+
+    return {
+        "prediction": str(result["Prediction"].iloc[0]),
+        "probability": float(result["Probability"].iloc[0]),
+        "threshold": float(load_threshold(model_name)),
+        "model": model_name,
+    }
+
+
+def _row_to_dict(row: pd.Series) -> dict:
+    """Convert a CSV/DataFrame row into plain Python values for validation."""
+    record = {}
+    for key, value in row.items():
+        if pd.isna(value):
+            record[key] = None
+        elif hasattr(value, "item"):
+            record[key] = value.item()
+        else:
+            record[key] = value
+    return record
 
 
 ASK_NUMERICAL_FIELDS = ["Age", "MonthlyIncome", "YearsAtCompany"]
@@ -201,7 +260,7 @@ def compute_defaults() -> dict:
 
     for field in ALL_NUMERICAL_FIELDS:
         if field not in ASK_NUMERICAL_FIELDS:
-            defaults[field] = float(raw[field].median())
+            defaults[field] = int(raw[field].median())
 
     for field in ALL_CATEGORICAL_FIELDS:
         if field not in ASK_CATEGORICAL_OPTIONS:
@@ -213,13 +272,13 @@ def compute_defaults() -> dict:
     return defaults
 
 
-def _prompt_float(field: str) -> float:
+def _prompt_float(field: str) -> int:
     while True:
         raw = input(f"{field}: ").strip()
         try:
-            return float(raw)
+            return int(raw)
         except ValueError:
-            print("  Please enter a numeric value.")
+            print("  Please enter a whole number.")
 
 
 def _prompt_choice(field: str, options: list) -> str:
@@ -255,17 +314,21 @@ def collect_user_input() -> pd.DataFrame:
     return pd.DataFrame([record])
 
 
-def predict_interactive(model_name: str = "random_forest") -> pd.DataFrame:
-    """Collect a single employee's details (minimal input) via CLI prompts and predict."""
+def predict_interactive(model_name: str = "random_forest") -> tuple[pd.DataFrame, dict]:
+    """Collect a single employee's details via CLI prompts and predict."""
     df = collect_user_input()
-    result = predict_from_dataframe(df, model_name)
-    return result
+    result = predict(model_name, _row_to_dict(df.iloc[0]))
+    return df, result
 
 
 def predict_from_csv(csv_path: str, model_name: str = "random_forest", output_path: str = None) -> pd.DataFrame:
     """Run predictions on a CSV file and optionally save the results."""
     df = pd.read_csv(csv_path)
-    result = predict_from_dataframe(df, model_name)
+    results = [predict(model_name, _row_to_dict(row)) for _, row in df.iterrows()]
+
+    result = df.copy()
+    result["Prediction"] = [item["prediction"] for item in results]
+    result["Probability"] = [item["probability"] for item in results]
 
     if output_path:
         result.to_csv(output_path, index=False)
@@ -282,15 +345,19 @@ def run_prediction(input_path: str = None, model_name: str = "random_forest", ou
     file and runs batch prediction.
     """
     if input_path is None or input_path.lower() == "interactive":
-        result = predict_interactive(model_name)
+        df, result = predict_interactive(model_name)
         if output_path:
-            result.to_csv(output_path, index=False)
+            saved = df.copy()
+            saved["Prediction"] = result["prediction"]
+            saved["Probability"] = result["probability"]
+            saved.to_csv(output_path, index=False)
             logger.info(f"Predictions saved to {output_path}")
-        logger.info(f"Predicted {len(result)} row using {model_name}.")
-        print(result[["Prediction", "Probability"]].to_string(index=False))
+        logger.info("Predicted 1 row using %s.", model_name)
+        printable = [{"Prediction": result["prediction"], "Probability": result["probability"]}]
+        print(pd.DataFrame(printable).to_string(index=False))
 
         try:
-            top_features = top_contributing_features(result, model_name)
+            top_features = top_contributing_features(df, model_name)
             print("\nTop factors behind this prediction (SHAP):")
             for name, value in top_features:
                 direction = "increases" if value > 0 else "decreases"

@@ -1,0 +1,104 @@
+@import "@fontsource/plus-jakarta-sans/400.css";
+@import "@fontsource/plus-jakarta-sans/500.css";
+@import "@fontsource/plus-jakarta-sans/600.css";
+@import "@fontsource/plus-jakarta-sans/700.css";
+@import "@fontsource/plus-jakarta-sans/800.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/jetbrains-mono/600.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 48 33% 98%;
+  --foreground: 222 34% 13%;
+  --card: 0 0% 100%;
+  --card-muted: 48 25% 96%;
+  --muted: 40 12% 46%;
+  --muted-foreground: 222 12% 44%;
+  --border: 40 12% 89%;
+  --accent: 226 64% 43%;
+  --accent-soft: 226 80% 96%;
+  --accent-foreground: 0 0% 100%;
+  --ring: 226 64% 43%;
+  --shadow: 222 40% 20%;
+
+  --risk-low: 152 52% 32%;
+  --risk-low-soft: 152 55% 94%;
+  --risk-medium: 32 88% 38%;
+  --risk-medium-soft: 36 95% 94%;
+  --risk-high: 0 68% 46%;
+  --risk-high-soft: 0 85% 96%;
+}
+
+* {
+  @apply border-border;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-foreground font-sans antialiased;
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60rem 32rem at 12% -8%, hsl(var(--accent) / 0.07), transparent 70%),
+    radial-gradient(48rem 28rem at 98% 4%, hsl(var(--risk-low) / 0.05), transparent 72%);
+}
+
+::selection {
+  background: hsl(var(--accent) / 0.18);
+}
+
+:focus-visible {
+  @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+}
+
+@layer components {
+  .card-surface {
+    @apply rounded-2xl border border-border/80 bg-card shadow-soft;
+  }
+
+  .label-text {
+    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground;
+  }
+
+  .num {
+    @apply font-mono tabular-nums;
+  }
+
+  .skeleton-shine {
+    @apply relative overflow-hidden bg-card-muted;
+  }
+
+  .skeleton-shine::after {
+    content: "";
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    background: linear-gradient(90deg, transparent, hsl(var(--card) / 0.75), transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -191,6 +191,50 @@ ACM-SIG-AI-TASKS/
 
 ---
 
+## How to run the WorkPulse web app (with authentication)
+
+Accounts protect `/predict`, `/predict/batch`, `/explain` and the Predict, Batch and History pages. `/health`, `/models`, `/schema` and About stay public.
+
+### 1. Configure
+
+```bash
+cd workpulse
+cp .env.example .env
+# Fill in DATABASE_URL (Neon Postgres), JWT_SECRET and FRONTEND_ORIGIN
+
+cd ../frontend
+cp .env.example .env   # optional; VITE_API_URL defaults to http://localhost:8000
+```
+
+Tables (`users`) are created automatically when the API starts. Never commit the real `.env`.
+
+### 2. Install and run
+
+```bash
+# Terminal 1 — API
+cd workpulse
+python -m venv venv
+venv/bin/pip install -r requirements.txt
+venv/bin/uvicorn api:app --reload --port 8000
+
+# Terminal 2 — frontend
+cd frontend
+npm install
+npm run dev            # http://localhost:5173
+```
+
+### 3. Manual auth checklist
+
+- [ ] Signup with a new email → redirected to Predict as a logged-in user
+- [ ] Duplicate email → inline "already exists" error
+- [ ] Wrong password → inline "Invalid email or password"
+- [ ] `GET /api/auth/me` → returns the current user; without cookies → 401
+- [ ] Open `/` while logged out → redirected to Login, then back after login
+- [ ] Logout → `/api/auth/me` returns 401 and Login/Signup buttons reappear
+- [ ] After access-token expiry, a prediction triggers `/api/auth/refresh` once and succeeds
+
+---
+
 ## Closing Note
 
 This repository documents a deliberate, stage-by-stage progression in applied machine learning — from feature-level optimization, through comparative model evaluation, to the design of a complete multi-model system. Each project builds on the methodology and evaluation standards established in the previous one, with the broader objective of developing production-oriented AI engineering skills.

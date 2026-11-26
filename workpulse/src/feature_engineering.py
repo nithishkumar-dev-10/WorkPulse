@@ -19,7 +19,7 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
                                       "RelationshipSatisfaction", "WorkLifeBalance"]
                          if c in df.columns]
     if satisfaction_cols:
-        sat_df = df[satisfaction_cols].replace(sat_map).apply(pd.to_numeric, errors="coerce")
+        sat_df = df[satisfaction_cols].apply(lambda col: col.map(lambda v: sat_map.get(v, v))).apply(pd.to_numeric, errors="coerce")
         df["SatisfactionScore"] = sat_df.mean(axis=1)
     else:
         df["SatisfactionScore"] = 2.5

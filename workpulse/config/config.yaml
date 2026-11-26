@@ -24,6 +24,7 @@ paths:
   artifacts:
     preprocessor: "artifacts/preprocessor.pkl"
     feature_columns: "artifacts/feature_columns.pkl"
+    thresholds: "artifacts/thresholds.json"
 
   reports:
     figures: "reports/figures"

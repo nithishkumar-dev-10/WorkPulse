@@ -1,3 +1,4 @@
+import json
 import logging
 from pathlib import Path
 
@@ -106,6 +107,30 @@ def save_metrics(all_metrics: list[dict]) -> pd.DataFrame:
     logger.info(f"Metrics saved to {metrics_path / 'metrics.csv'}")
 
     return metrics_df
+
+
+def save_thresholds(all_metrics: list[dict]) -> dict[str, float]:
+    """Persist tuned per-model thresholds beside the model artifacts."""
+    cfg = load_config()
+    path = PROJECT_ROOT / cfg["paths"]["artifacts"]["thresholds"]
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    cli_keys = {
+        "Logistic Regression": "logistic",
+        "Random Forest": "random_forest",
+        "XGBoost": "xgboost",
+    }
+    thresholds = {
+        cli_keys.get(row["Model"], row["Model"]): float(row["Threshold"])
+        for row in all_metrics
+    }
+
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(thresholds, f, indent=2)
+        f.write("\n")
+
+    logger.info(f"Thresholds saved to {path}")
+    return thresholds
 
 #saving the summary 
 def save_summary(metrics_df: pd.DataFrame) -> None:
