@@ -209,10 +209,8 @@ export function PredictPage() {
           <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
             <span className="text-gradient text-gradient-indigo">Attrition risk assessment</span>
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Estimate how likely an employee is to leave, based on their profile. Enter a
-            real qualification and commute distance in km — both are translated to the
-            exact numeric scale the model was trained on.
+          <p className="mt-2 text-sm text-muted-foreground">
+            Estimate attrition risk from an employee's profile.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -293,7 +291,7 @@ export function PredictPage() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={reduced ? undefined : { opacity: 0, x: -18 }}
                 transition={{ duration: reduced ? 0 : 0.25 }}
-                className="grid min-h-[270px] gap-x-8 gap-y-6 sm:grid-cols-2"
+                className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 items-start"
               >
                 {stepFields.map((field) => (
                   <Controller
