@@ -6,12 +6,14 @@ Run with:  venv/bin/uvicorn api:app --reload --port 8000
 import logging
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Literal
 
 import pandas as pd
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from src.auth import get_current_user, router as auth_router
@@ -34,6 +36,10 @@ from src.settings import settings
 
 logger = logging.getLogger(__name__)
 
+# api.py lives in workpulse/workpulse; frontend/dist is a sibling directory.
+FRONTEND_DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
+FRONTEND_ROOT = FRONTEND_DIST.resolve()
+
 
 def _env_bool(name: str, default: bool) -> bool:
     value = os.getenv(name)
@@ -49,7 +55,7 @@ CORS_ORIGINS = list(
             origin.strip()
             for origin in os.getenv(
                 "CORS_ORIGINS",
-                "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:3000,http://127.0.0.1:3000",
+                "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:3000,http://127.0.0.1:3000,https://workpulse-2xtk.onrender.com",
             ).split(",")
             if origin.strip()
         ]
@@ -232,3 +238,33 @@ def explain(request: PredictRequest, _user=Depends(get_current_user)):
             for feature, value in factors
         ],
     }
+
+
+# --- Single-service frontend hosting ---------------------------------------
+# Registered last so the API routes above always take precedence.
+if FRONTEND_DIST.exists():
+    assets_dir = FRONTEND_DIST / "assets"
+    if assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+def serve_frontend(full_path: str):
+    """Serve built frontend files, falling back to index.html for React Router."""
+    if full_path == "api" or full_path.startswith("api/"):
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    if full_path:
+        candidate = (FRONTEND_ROOT / full_path).resolve()
+        try:
+            candidate.relative_to(FRONTEND_ROOT)
+        except ValueError:
+            raise HTTPException(status_code=404, detail="Not Found")
+        if candidate.is_file():
+            return FileResponse(candidate)
+
+    index = FRONTEND_DIST / "index.html"
+    if index.is_file():
+        return FileResponse(index)
+
+    raise HTTPException(status_code=404, detail="Not Found")

@@ -8,7 +8,10 @@ import type {
   SchemaField,
 } from "@/types/api";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+// Production is served from the same origin as the API; local dev uses the
+// standalone Vite server and therefore needs the explicit backend URL.
+const API_URL = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? "http://localhost:8000" : "");
+const API_LABEL = API_URL || "this service";
 
 let unauthorizedHandler: (() => void) | null = null;
 
@@ -28,9 +31,9 @@ async function backendIsReachable(): Promise<boolean> {
 
 export async function networkErrorMessage(): Promise<string> {
   if (await backendIsReachable()) {
-    return `The API at ${API_URL} is reachable, but this origin was blocked by CORS. Check CORS_ORIGINS / FRONTEND_ORIGIN.`;
+    return `The API at ${API_LABEL} is reachable, but this origin was blocked by CORS. Check CORS_ORIGINS / FRONTEND_ORIGIN.`;
   }
-  return `Cannot reach the API at ${API_URL}. Start the backend first.`;
+  return `Cannot reach the API at ${API_LABEL}. Start the backend first.`;
 }
 
 export async function apiError(response: Response): Promise<string> {
